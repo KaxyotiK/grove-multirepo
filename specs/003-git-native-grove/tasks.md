@@ -373,8 +373,8 @@ This phase closes the PR review's demonstrated output-conformance bug without ad
 
 ## Phase 14: Interrupted-operation recovery correction
 
-- [ ] T118 [US7] Specify FR-052 and V3RCV-01–04 in `spec.md` and `contracts/cli-surface-v3.md` and append acceptance rows in `contracts/acceptance-scenarios-v3.md`.
-- [ ] T119 [US7] Analyze consistency of `spec.md`, `plan.md`, and `tasks.md` against constitution IV/V before implementation.
-- [ ] T120 [US7] Add failing V3RCV witnesses in `tests/cli/recovery-v3.test.ts` for diagnostic parity, metadata-free delete, lifecycle remedies, and independent interrupted acquisitions.
-- [ ] T121 [US7] Implement shared audit and recovery corrections in `src/commands/doctor.ts`, `src/commands/reconcile.ts`, and the recovery helper and paths of `src/commands/lifecycle.ts`.
-- [ ] T122 [US7] Run focused tests and the full local gate, append passing witnesses to `traceability.md`, and record user-visible corrections in `CHANGELOG.md`.
+- [x] T118 [US7] Specify FR-052 and V3RCV-01–04 in `spec.md` and `contracts/cli-surface-v3.md` and append acceptance rows in `contracts/acceptance-scenarios-v3.md`.
+- [x] T119 [US7] Analyze consistency of `spec.md`, `plan.md`, and `tasks.md` against constitution IV/V before implementation.
+- [x] T120 [US7] Add failing V3RCV witnesses in `tests/cli/recovery-v3.test.ts` for diagnostic parity, metadata-free delete, lifecycle remedies, and independent interrupted acquisitions.
+- [x] T121 [US7] Implement shared audit and recovery corrections in `src/commands/doctor.ts`, `src/commands/reconcile.ts`, and the recovery helper and paths of `src/commands/lifecycle.ts`.
+- [x] T122 [US7] Run focused tests and the full local gate, append passing witnesses to `traceability.md`, and record user-visible corrections in `CHANGELOG.md`.
