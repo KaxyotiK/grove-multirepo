@@ -81,6 +81,10 @@ These scenarios supplement, and do not renumber or replace, the 180 scenarios in
 | V3LCK-01 | A dead lock recorded with this Mac's hardware UUID is classified and reclaimed after its hostname label changes. | Lock-store module test |
 | V3LCK-02 | A dead lock recorded with a different hardware UUID is treated as foreign even when its hostname label matches the current hostname. | Lock-store module test |
 | V3LCK-03 | A 0.1.0 lock without a hardware UUID follows the existing hostname decision; an unavailable local UUID also uses that decision. | Lock-store module test |
+| V3RCV-01 | For one unchanged workspace, `doctor` and `reconcile --audit-only` return the same diagnostic identities and codes, including pending operations and lock findings; audit-only changes no operation or lock state. | Recovery CLI integration |
+| V3RCV-02 | Deletion interrupted during a Tree removal for a Grove made by `new` without central metadata resumes through `reconcile`, retains refs, removes the Grove directory and empty Tree scaffold, and completes its operation record. If a conflicting late file requires abandonment, explicit `delete` selects only the identity-matched Grove, refuses unconsented content with exit 5 and names it, and removes an empty scaffold or consented content. A cmux projection file under the Grove root is protected loose content before and after abandonment: plain `delete` refuses with exit 5 and names the file; only all-content consent removes it. An older abandoned record cannot bind a recreated Grove. | Recovery CLI integration |
+| V3RCV-03 | A lifecycle retry blocked by a pending operation names that operation and `grove reconcile`; `new`, `restore`, and `rename` metadata-step failures name the exact reconcile operation as the forward remedy. | Recovery CLI integration |
+| V3RCV-04 | Two independent interrupted `repo add` operations whose workspace revisions were captured before either registration both finish under one `reconcile`; a current registration with a colliding alias, store path, or trunk path causes only the conflicting resume to refuse with `stale-plan`. | Recovery CLI integration |
 
 ## Retired v3 scenarios
 

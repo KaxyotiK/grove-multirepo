@@ -325,6 +325,14 @@ tests/
 
 ## Cross-Phase Verification
 
+### Recovery correction (FR-052; V3RCV-01–04)
+
+1. Extend the current recovery contract and append V3RCV scenarios. Keep the existing feature directory and branch.
+2. Add CLI witnesses and observe the four failures before production changes.
+3. Share doctor's diagnostic audit with reconcile without changing lock-finding mapping; fix metadata-free delete continuation, lifecycle remedies, and point-of-use repo-add config revalidation.
+4. Run focused tests, then the full local gate and record the passing witnesses in traceability.
+
+
 | Gate | Required evidence |
 |---|---|
 | Baseline preservation | Every inherited scenario has an exact preserved/superseded disposition and executable witness; aggregate IDs or test counts are supporting evidence only. |

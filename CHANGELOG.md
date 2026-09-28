@@ -3,6 +3,10 @@
 ## Unreleased
 
 - Workspace locks use the Mac's hardware UUID when available, so a hostname change does not block recovery of this Mac's crashed lock. Existing 0.1.0 lock records and Macs where the UUID cannot be read retain hostname-based behavior.
+- `reconcile --audit-only` now reports the same pending-operation and lock diagnostics as `doctor`.
+- Interrupted deletion of a Grove without central metadata can resume; after abandonment, an explicit `delete` can remove its identity-matched empty scaffold or re-plan current loose content under the usual consent flags.
+- Lifecycle recovery errors identify the pending operation and the exact `grove reconcile` command.
+- Independent interrupted `repo add` operations can all resume after unrelated workspace config updates; real alias and path conflicts still refuse.
 
 ## 0.1.0
 
