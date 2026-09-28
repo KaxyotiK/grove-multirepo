@@ -29,6 +29,17 @@ npm run typecheck && npm test && npm run scan && npm run traceability
 
 There is no hosted CI. Verification is local, on macOS.
 
+## Writing help text
+
+Command help is generated from each command's `CommandSpec` in `src/commands/registry.ts`, which is also the runtime option schema. Keep summaries and argument lines short and use the vocabulary in [How it works](README.md#how-it-works). In particular:
+
+- Never describe config or metadata as owning a live branch or Tree; Git owns live state.
+- `repo link` accepts anything Git resolves to a repository (root, subdirectory, linked worktree, or bare repository). Never present a linked checkout as a Grove trunk.
+- `sync` help states the selected strategy and never implies a reset, a guessed upstream, or atomic success. `reconcile` resumes or abandons forward operations; it never "rolls back".
+- Do not present an old ownership layout as the default, or advertise a migration path: v3 refuses foreign-schema workspaces and names the running version, binary, and both schemas.
+
+Recurring phrases: "Git owns live state", "branch retained", "advisory preference", "managed peer trunk", "linked repository", "forward operation", "rescan before mutation".
+
 ## Pull requests
 
 - Keep each pull request to one change, with a clear description of the behaviour it changes and the scenario IDs it adds or touches.
