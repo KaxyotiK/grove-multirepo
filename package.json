@@ -46,7 +46,7 @@
     "scan": "npm run build && bash scripts/legacy-scan.sh",
     "traceability": "bash scripts/scenario-traceability.sh",
     "prepack": "npm run build",
-    "prepublishOnly": "npm run typecheck && npm test"
+    "prepublishOnly": "npm run typecheck && npm test && npm run scan && npm run traceability"
   },
   "license": "MIT",
   "devDependencies": {
