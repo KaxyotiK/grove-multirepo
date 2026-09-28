@@ -13,6 +13,11 @@
 - Independent interrupted `repo add` operations can all resume after unrelated workspace config updates; real alias and path conflicts still refuse.
 - `grove delete` uses fewer Git calls for Groves with multiple Trees while retaining its work and loose-content safety checks.
 
+## Unreleased
+
+- Interrupted deletion now resumes through empty grouped Tree slots left by native moves and `fix --move`, including Groves created with `new --all`; files inside those slots remain protected by exact destructive consent.
+- `reconcile --audit-only` now observes workspace locks without reclaiming them, matching `doctor` for dead same-machine, legacy, and foreign-machine holders.
+
 ## 0.1.0
 
 First public release, published to npm as `grove-multirepo`. The command is `grove`. Requires macOS, Node 24 or newer, and Git.

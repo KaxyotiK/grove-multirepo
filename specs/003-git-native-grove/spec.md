@@ -337,3 +337,8 @@ The migration identifiers below are retained only as stable historical citation 
 - Release verification for this corrective phase is local on macOS. CI and additional-platform verification are out of scope; this phase adds no Linux-specific work or compatibility claim beyond the constitution's inherited runtime constraints.
 - Git capabilities required for deterministic, byte-safe observation and safe worktree operations are checked before relevant mutation; unsupported environments receive an actionable refusal.
 - Historical proposal material is consulted only to explain prior decisions; it cannot override this specification, its contracts, or the constitution.
+
+## 0.1.1 release recovery corrections
+
+- **FR-054**: Interrupted deletion MUST classify empty structural Tree slots consistently at planning, direct point of use, and recovery point of use, while preserving exact loose-content consent for files within slots (`cli-surface-v3.md` §Removal and recovery; V3REL-01–02).
+- **FR-055**: `reconcile --audit-only` MUST report doctor's pending-operation and lock diagnostics for unchanged workspace state without acquiring, reclaiming, or writing the workspace operation lock; recovery and abandonment retain the existing lock discipline (`cli-surface-v3.md` §Removal and recovery; V3REL-03–05).

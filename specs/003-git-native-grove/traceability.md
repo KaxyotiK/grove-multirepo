@@ -95,3 +95,13 @@ The proposal section 8 table is exhaustive. These rows bind implementation owner
 | V3RCV-02 | Recovery correction / T120–T122 | `tests/cli/recovery-v3.test.ts`: metadata-free delete resume and safe explicit empty-scaffold cleanup |
 | V3RCV-03 | Recovery correction / T120–T122 | `tests/cli/recovery-v3.test.ts`: pending archive retry and failed new metadata write remedies |
 | V3RCV-04 | Recovery correction / T120–T122 | `tests/cli/recovery-v3.test.ts`: two independent interrupted acquisitions complete together |
+
+## 0.1.1 release recovery fixes (FR-054–055)
+
+| Scenario | Plan/task | Passing witness |
+|---|---|---|
+| V3REL-01 | Release recovery / T-REL-1–3 | `tests/cli/release-fixes-v3.test.ts`: interrupted central-metadata delete resumes past an unchanged empty grouped slot; a later file within the slot causes a recorded-consent conflict and survives |
+| V3REL-02 | Release recovery / T-REL-1–3 | `tests/cli/release-fixes-v3.test.ts`: interrupted metadata-free `new --all` deletion resumes past an unchanged empty grouped slot |
+| V3REL-03 | Release recovery / T-REL-1–3 | `tests/cli/release-fixes-v3.test.ts`: same-machine UUID with changed hostname retains lock and matches doctor's diagnostic identity and automatic classification |
+| V3REL-04 | Release recovery / T-REL-1–3 | `tests/cli/release-fixes-v3.test.ts`: legacy dead holder retains lock and matches doctor's diagnostic identity and automatic classification |
+| V3REL-05 | Release recovery / T-REL-1–3 | `tests/cli/release-fixes-v3.test.ts`: foreign-machine dead holder retains lock and matches doctor's diagnostic identity and manual classification |

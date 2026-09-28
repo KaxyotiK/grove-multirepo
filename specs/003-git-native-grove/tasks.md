@@ -391,3 +391,9 @@ This phase closes the PR review's demonstrated output-conformance bug without ad
 - [ ] T-DPF-2 Add the failing V3DPF-01 call-count witness and V3DPF-02 work/loose-content refusal controls — FR-053; proof: focused red on `6aa08af`.
 - [ ] T-DPF-3 Limit delete point-of-use observation to facts used for identity and protected-path decisions while retaining full plan-time and target-specific safety checks — FR-053; depends on T-DPF-2; proof: focused green and destructive suites.
 - [ ] T-DPF-4 Re-measure one, two, and four Trees, run the full local gate, and record the passing witness — FR-053; depends on T-DPF-3; proof: external measurements and gate log.
+
+## 0.1.1 release recovery fixes (V3REL)
+
+- [ ] T-REL-1 Specify FR-054–055 and V3REL-01–05, add built-CLI behavior witnesses, and capture the red baseline on `3ebe12a` — TRACE-RELEASE-FIX.
+- [ ] T-REL-2 Reuse structural Tree-slot classification in delete resume, dispatch validated audit-only without the workspace operation lock, and preserve late-file refusal — TRACE-RELEASE-FIX; depends on T-REL-1.
+- [ ] T-REL-3 Verify focused suites and the review probes, run the full local gate once, append passing traceability witnesses, then obtain independent PR review — TRACE-RELEASE-FIX; depends on T-REL-2.

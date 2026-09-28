@@ -92,6 +92,11 @@ These scenarios supplement, and do not renumber or replace, the 180 scenarios in
 | V3RCV-04 | Two independent interrupted `repo add` operations whose workspace revisions were captured before either registration both finish under one `reconcile`; a current registration with a colliding alias, store path, or trunk path causes only the conflicting resume to refuse with `stale-plan`. | Recovery CLI integration |
 | V3DPF-01 | Deleting a clean two-Tree Grove completes and removes its content with at most 120 Git invocations, counted by a passive PATH proxy. | Delete-performance CLI integration |
 | V3DPF-02 | The lower-call delete path still refuses plain deletion of dirty and untracked Tree work and loose `.grove-cmux/` content, with or without `projection.json`; exact destructive consent still removes the latter when explicitly authorized. | Delete-performance CLI integration |
+| V3REL-01 | After a native Tree move and `fix --move` leave an empty grouped Tree slot, an interrupted all-consented delete of a Grove with central metadata resumes to completion without new consent; a file added inside the slot is still protected by the recorded loose-content set. | Release-fix recovery CLI integration |
+| V3REL-02 | After `new --all` creates a metadata-free Grove and a native Tree move plus `fix --move` leave an empty grouped Tree slot, an interrupted plain delete resumes to completion without abandonment or a second delete. | Release-fix recovery CLI integration |
+| V3REL-03 | For a dead workspace lock with this Mac's UUID and a changed hostname label, `reconcile --audit-only` exits 0 with the same lock diagnostic identity and automatic-recovery classification as `doctor`, preserving the lock record. | Release-fix audit CLI integration |
+| V3REL-04 | For a legacy dead workspace lock without a UUID and with the current hostname, `reconcile --audit-only` exits 0 with the same lock diagnostic identity and automatic-recovery classification as `doctor`, preserving the lock record. | Release-fix audit CLI integration |
+| V3REL-05 | For a dead foreign-machine workspace lock with the current hostname, `reconcile --audit-only` exits 0 with the same lock diagnostic identity and manual-recovery classification as `doctor`, preserving the lock record. | Release-fix audit CLI integration |
 
 ## Retired v3 scenarios
 

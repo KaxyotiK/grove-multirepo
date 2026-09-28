@@ -369,3 +369,11 @@ The final cutover accepts schema 3 only and refuses every foreign schema before 
 2. Add V3DPF-01 and V3DPF-02 built-artifact witnesses before production edits. The clean two-Tree count must fail on the baseline; dirty and untracked Tree work and `.grove-cmux/` remain refusal controls.
 3. Use an identity-focused workspace observation only for delete's point-of-use structure and ownership checks. Keep full preflight observation and target-specific work and loose-content checks. Proof: focused witnesses and existing destructive suites.
 4. Re-measure one, two, and four Trees, run the full local gate, and record the passing witness in traceability. Proof: local gate log outside the repository.
+
+## 0.1.1 release recovery fixes (V3REL)
+
+**Authority:** FR-054–055; `cli-surface-v3.md` §Removal and recovery; V3REL-01–05; constitution IV/V. **Baseline:** the final 0.1.1 review's executable grouped-slot, metadata-free, and lock matrix probes reproduce against `3ebe12a`.
+
+1. Append V3REL acceptance scenarios and add built-CLI witnesses for both interrupted-delete forms and three workspace-lock identities. Preserve their red baseline before source edits.
+2. Reuse the current compiled layout's structural Tree slots in delete resume's loose-content inventory. Route a validated audit-only invocation through the read-only dispatch path while retaining normal reconcile locking.
+3. Re-run focused witnesses and review probes, then the full macOS gate once at default concurrency. Append passing witnesses to traceability and obtain independent PR review.

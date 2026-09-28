@@ -19,7 +19,7 @@ import type { ArchiveRecipe } from "../model/types.ts";
 import type { GroveManifest } from "../model/types.ts";
 import { assertDirectoryContainsOnlyRoots, containedParentPath, containedPath, isStrictSubpath, isSubpath, mergeDirectoryForward, moveContainedDirectory, removeContainedDirectory, removeContainedFile, removeContainedSymbolicLink, inventoryLooseContent, looseEntryLabel, readRecordedLooseConsent, unaccountedEntries, unconsentedLooseEntries } from "../paths/fs.ts";
 import { parseCommand } from "./args.ts";
-import { compileLayout, expandArchivePath, expandGrovePath, expandRepositoryPath, expandTreePath, matchLayoutPath, resolveLayoutTarget } from "../config/layout.ts";
+import { compileLayout, expandArchivePath, expandGrovePath, expandRepositoryPath, expandTreePath, matchLayoutPath, resolveLayoutTarget, structuralTreeSlotPaths } from "../config/layout.ts";
 import { caseFoldKey, isValidTrunkAllocation, nativePathFromBytes } from "../model/encoding.ts";
 import { checkRemoteCredentials, checkRemoteName } from "../model/validate.ts";
 import { centralGroveManifest } from "../paths/layout.ts";
@@ -485,7 +485,8 @@ async function resumeOperation(root: string, record: OperationRecord, git: Git):
         assertDestructiveMutationPath(pointOfUseSnapshot, expectedPath, { allowObservedPaths: [...removedWorktrees], groveName: identitySelector.grove });
         // FR-023: consent is the recorded per-path set. Every Tree step already ran, so anything at a
         // Tree path is new content. A legacy record's names cover those exact paths only.
-        const current = inventoryLooseContent(expectedPath, [...removedWorktrees], { accountedPresent: "inventory" });
+        const structuralDirectories = structuralTreeSlotPaths(pointOfUseSnapshot.layout, identitySelector.grove, pointOfUseSnapshot.repositories.flatMap((repository) => repository.registration ? [repository.registration.name] : []));
+        const current = inventoryLooseContent(expectedPath, [...removedWorktrees], { accountedPresent: "inventory", structuralDirectories });
         const currentLoose = current.entries.map(looseEntryLabel);
         const added = force ? unconsentedLooseEntries(recordedLoose, current.entries) : current.entries;
         if (current.incomplete.length || added.length) {

@@ -4,7 +4,7 @@ import { createEmitter, flushOutput, type Emitter } from "./output.ts";
 import { GroveError } from "./errors.ts";
 import { resolve, familyNames, type GlobalOptions } from "./commands/registry.ts";
 import { registerAll } from "./commands/index.ts";
-import { EarlyExit } from "./commands/args.ts";
+import { EarlyExit, parseCommand } from "./commands/args.ts";
 import { scanGlobals } from "./commands/globals.ts";
 import { discoverWorkspace } from "./config/discovery.ts";
 import { commandHelp, familyHelp, topHelp } from "./help.ts";
@@ -70,7 +70,8 @@ export async function run(argv: string[]): Promise<number> {
   progress({ event: "command-start", command: match.spec.path });
   try {
     let exitCode: number;
-    if (match.spec.mutates) {
+    const auditOnly = match.spec.path === "reconcile" && parseCommand(ctx).values["audit-only"] === true;
+    if (match.spec.mutates && !auditOnly) {
       const workspaceRoot = discoverWorkspace({ cwd: ctx.cwd, workspace: globals.workspace });
       exitCode = await withOperation(workspaceRoot, match.spec.path, () => Promise.resolve(match.spec.handler(ctx)));
     } else {
