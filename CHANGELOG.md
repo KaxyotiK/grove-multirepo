@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Malformed operation records are reported by `file ls` and `file read` without crashing; recoverable repository anchors remain protected.
+
 ## 0.1.0
 
 First public release, published to npm as `grove-multirepo`. The command is `grove`. Requires macOS, Node 24 or newer, and Git.
