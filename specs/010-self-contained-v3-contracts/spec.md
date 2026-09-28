@@ -20,7 +20,7 @@ The project rule is that nothing outside `specs/` is normative, and G-13 removed
 - `cli-surface-v3.md` — "Creation and recovery grammar is exactly proposal section 8.2"; branches "follow the proposal creation matrix".
 - `json-results-v1.md` — "Normative source: proposal section 8.4"; "exactly the proposal interface"; "the exact proposal vocabulary".
 
-The proposal predates the corrective rulings, so its text is partly wrong today: its §8.2 grammar still has `migrate` (ruling ⑤), `tree remove --force` (ruling ④), `new` selecting every repository by default (ruling ①), and `--abandon` for `stale` operations (removed in issue #6). A reader who follows a contract's pointer lands on superseded rules. The gate that should catch this (P2.7 in `tests/module/citations.test.ts`) only flags lines naming a file path, and these name a section.
+The proposal predates the corrective rulings, so its text is partly wrong today: its §8.2 grammar still has `migrate` (ruling ⑤), `tree remove --force` (ruling ④), `new` selecting every repository by default (ruling ①), and `--abandon` for `stale` operations (since removed). A reader who follows a contract's pointer lands on superseded rules. The gate that should catch this (P2.7 in `tests/module/citations.test.ts`) only flags lines naming a file path, and these name a section.
 
 ## User Scenarios & Testing _(mandatory)_
 

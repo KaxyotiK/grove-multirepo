@@ -15,9 +15,9 @@
 | `008-full-scenario-traceability` | 7th | Built the traceability gate. |
 | `003-repository-default-policy` | 8th | **Numbered 003 but landed after 008.** |
 | `003-git-native-grove` | 9th, current | **A second `003`.** The Git-native revision; where new behaviour is written. |
-| `009-file-surface-state-exclusion` | 10th | Excludes `.grove/` from the workspace-scoped file surface (issue #11); amended to refuse credentialed `repo add` remotes and exclude repository stores. Amends `003`'s contracts. |
+| `009-file-surface-state-exclusion` | 10th | Excludes `.grove/` from the workspace-scoped file surface; amended to refuse credentialed `repo add` remotes and exclude repository stores. Amends `003`'s contracts. |
 | `010-self-contained-v3-contracts` | 11th | Moves the proposal rules the v3 contracts relied on into them; deletes the proposal. |
-| `011-doctor-steal-marker` | 12th | Makes the read-only lock audit diagnose automatically recoverable orphaned `.steal` markers (issue #10). |
+| `011-doctor-steal-marker` | 12th | Makes the read-only lock audit diagnose automatically recoverable orphaned `.steal` markers. |
 
 So `004`–`008` all predate both `003-` directories, and `003-` is ambiguous on its own — always name the full directory. This is also why success-criteria IDs are namespaced by full directory name (`003-git-native-grove-SC-004`) rather than by number: `003-SC-004` would still be ambiguous.
 
@@ -35,7 +35,7 @@ Nothing outside `specs/` is normative. The pre-ruling Git-native proposal is his
 These were deleted from the tree before public release. Older specs, plans, and tasks still cite them by their old paths. They are kept in the private development history, not in this repository.
 
 - `.archive/build-plan.md`, `.archive/future-state.md`
-- `backlog.md` (open items moved to GitHub issues #5–#14)
+- `backlog.md`
 - `docs/decisions-and-tasks-20260820.md`, `docs/design-decisions-20260819.md`
 - `docs/retro-failure-analysis.md`, `docs/retro-post-build-fixes.md`, `docs/retro-timeline.md`
 - `docs/herdr-sidebar-capability-assessment.md`

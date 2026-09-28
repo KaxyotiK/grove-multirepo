@@ -1,4 +1,4 @@
-# Issue #9 round 7 evidence ledger
+# Contained-path round 7 evidence ledger
 
 Constitution 6.0.0 Principle IV, FR-021/FR-023/FR-023A and V3DES-01 govern this correction. The round-six ledger remains a historical statement of its own verification, but independent review found its structural ownership claim overbroad for nested Git repositories and populated submodules. This ledger supersedes that claim for those shapes. Task checkboxes in `tasks.md` are not completion evidence.
 

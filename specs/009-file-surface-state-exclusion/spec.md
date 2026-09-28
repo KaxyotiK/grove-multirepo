@@ -10,7 +10,7 @@
 
 **Status**: Implemented
 
-**Input**: User description: "Exclude Grove's internal state directory from the file surface (GitHub issue #11). At workspace scope, `file ls` and `file read` refuse any path that resolves into the workspace's `.grove/` directory, and `file ls` of the workspace root omits the `.grove` entry."
+**Input**: User description: "Exclude Grove's internal state directory from the file surface. At workspace scope, `file ls` and `file read` refuse any path that resolves into the workspace's `.grove/` directory, and `file ls` of the workspace root omits the `.grove` entry."
 
 **Amendment input** (repository owner, PR #15 review): "`repo add` runs `git remote add` in the managed bare repository, so Git stores the exact URL, token included, in `repos/<repo>/config`, and `grove file read repos/<repo>/config` prints it. Grove does not support credentials embedded in remote URLs: refuse them in `repo add` before any mutation, and exclude the repository store from the file surface as insurance against a token added later by hand."
 

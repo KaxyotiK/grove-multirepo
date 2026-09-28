@@ -8,7 +8,7 @@
 
 **Status**: Implemented
 
-**Input**: User description: "Make `grove doctor` report an orphaned lock-reclamation `.steal` marker without reporting a steal that is still in progress (GitHub issue #10)."
+**Input**: User description: "Make `grove doctor` report an orphaned lock-reclamation `.steal` marker without reporting a steal that is still in progress."
 
 **Authority**: §6 and §8.4; `specs/003-git-native-grove/contracts/` `cli-surface-v3.md`, `json-results-v1.md`, and `acceptance-scenarios-v3.md`.
 

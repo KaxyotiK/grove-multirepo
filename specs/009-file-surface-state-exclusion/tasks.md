@@ -40,7 +40,7 @@
 - [x] T010 Revert the handler change temporarily and confirm T003 and T004 fail, then restore it (`src/commands/files.ts`)
 - [x] T011 Run `specs/009-file-surface-state-exclusion/quickstart.md` against `dist/grove.mjs`
 - [x] T012 Run `npm run typecheck && npm test && npm run scan && npm run traceability`, then `npm pack`, install the tarball under an isolated `--prefix`, and run the installed `grove --version` (constitution: bundled build and clean isolated install)
-- [x] T013 Close GitHub issue #11 citing the commit and the `V3SEC-04` witness (`specs/009-file-surface-state-exclusion/spec.md` Status → Implemented)
+- [x] T013 Record the commit and the `V3SEC-04` witness (`specs/009-file-surface-state-exclusion/spec.md` Status → Implemented)
 
 ## Phase 6: Amendment — credentialed remotes and repository stores (2026-09-23, PR #15 review)
 
@@ -75,7 +75,7 @@
 - [x] T031 [US4] Read `url.<base>.insteadOf` rules without the URL in argv (`Git.urlRewriteRules`), apply Git's longest-prefix rewrite (`rewriteRemoteUrl`), and check the typed and rewritten URLs in `repo add`; `V3SEC-05` witness with an insteadOf fixture config for the `web:` and `ssh://` variants, observed failing first (FR-009)
 - [x] T032 [US4] Echo a plain SSH remote verbatim in `redactRemote`, and mask opaque and helper forms carrying `@`; module and CLI (`detail.remote`) witnesses observed failing first (FR-010, FR-011)
 - [x] T033 [US4] Strip `<transport>::` prefixes repeatedly and treat `@` before the first `/` of a helper address without `://` as userinfo; module witnesses observed failing first (FR-009)
-- [x] T034 Align the edge-case definition with R7, state transport stripping and insteadOf in `json-results-v1.md` and `cli-surface-v3.md`, and cite issue #23 in FR-012
+- [x] T034 Align the edge-case definition with R7, state transport stripping and insteadOf in `json-results-v1.md` and `cli-surface-v3.md`
 
 ## Phase 10: Round-5 review follow-ups (2026-09-23)
 

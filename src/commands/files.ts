@@ -50,7 +50,7 @@ function isGroveState(path: string, groveState: FileIdentity | null): boolean {
 }
 
 /**
- * Issue #11 / `V3SEC-04`. `.grove/` is Grove's internal state, not workspace content, and a
+ * `V3SEC-04`. `.grove/` is Grove's internal state, not workspace content, and a
  * resumable operation record there retains an unredacted remote.
  *
  * `.grove` is recognised by device/inode, not path text: `realpathSync` keeps the caller's spelling,

@@ -185,7 +185,7 @@ test("V3SEC-05: a permitted store fetch cannot retain Git stderr containing a co
     { status: 6, reason: "git-failed", outputLeaked: false, stateLeaked: false });
 });
 
-test("V3SEC-05: resumed acquisition rechecks the retained remote and current opt-in (#24)", async () => {
+test("V3SEC-05: resumed acquisition rechecks the retained remote and current opt-in", async () => {
   const fx = makeFixture();
   assert.equal(fx.grove(["init"]).status, 0);
   const gate = createGitGate(["fetch", "--prune", "--", "origin", "+refs/heads/*:refs/remotes/origin/*"]);

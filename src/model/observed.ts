@@ -179,7 +179,7 @@ function classifyRaw(raw: RawWorktreeEntry, registration: RepositoryEntry | null
   }
   if (match?.role === "tree" && match.grove && match.tree) {
     if (registration) {
-      // Issue #18: a `{repo}` segment is a claim about ownership that Git decides. The owner is the
+      // A `{repo}` segment is a claim about ownership that Git decides. The owner is the
       // registration whose `git worktree list` reported this entry, so a Tree sitting in another
       // repository's slot is misplaced; its conforming path keeps the observed Grove and Tree names.
       // A case variant can name the same directory on a case-insensitive volume, but on a

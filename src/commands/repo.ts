@@ -50,7 +50,7 @@ function assertRepoNameFree(config: Pick<WorkspaceConfig, "repositories">, name:
 }
 
 /**
- * Issue #22 (V3ACQ-02). Git resolves a relative local remote against the directory it runs in, and
+ * V3ACQ-02. Git resolves a relative local remote against the directory it runs in, and
  * `repo add` runs Git in the workspace root and then in the new store, never where the user typed
  * the command. Resolve it once, against the invocation directory, before preflight, so the absolute
  * path is what is validated, recorded (including for `reconcile` resume) and fetched.
@@ -165,7 +165,7 @@ async function addRepository(ctx: CommandContext, remote: string, name: string, 
       // `recoverable-intermediate`, which `abandon` refuses (operation.ts accepts only
       // `conflicted`) — so the alias was locked forever and the remedy named an unreachable state.
       // `new` and `archive` reach `conflicted` the same way. (A never-assigned `stale` state was
-      // removed from the union, issue #6.)
+      // removed from the union,)
       recordStepFailure(operation, step, "conflicted", reason, { error: String((error as Error).message ?? error), after, anchor });
       const explained = reason === "git-failed" || !GroveError.is(error) ? {} : { detail: { why: error.why, remedy: error.remedy } };
       const result = { schemaVersion: 1 as const, command: "repo add", outcome: "partial" as const, operationId: operation.id, targets: [{ selector: { repositoryId: id, repositoryAlias: name }, before: null, action: step, after, reason, ...explained }], diagnostics: [], detail: { remote: redactRemote(remote), trunk, anchor, trunkPath } };

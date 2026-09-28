@@ -12,7 +12,7 @@ import { cleanupTempDirs } from "../testkit/tmp.ts";
 
 after(cleanupTempDirs);
 
-// Issue #22. A local path given to `repo add` is resolved against the directory the command ran
+// A local path given to `repo add` is resolved against the directory the command ran
 // in, once, before preflight (cli-surface-v3.md `repo add`; V3ACQ-02). Remote URLs and scp-like
 // remotes keep the V3SEC-05 handling unchanged.
 

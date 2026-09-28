@@ -151,7 +151,7 @@ test("FILE-04/FILE-06: aggregate review reports every exact repository target in
 });
 
 /**
- * Issue #11 / feature 009. A resumable `repo-add` retains its exact remote in
+ * Feature 009. A resumable `repo-add` retains its exact remote in
  * `.grove/operations/<id>.json` so `reconcile` can resume; every Grove result redacts it. The file
  * surface reached `.grove/` at workspace scope and printed it verbatim.
  */

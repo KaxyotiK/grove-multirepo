@@ -1,4 +1,4 @@
-# Issue #22 relative `repo add` path: evidence ledger
+# Relative `repo add` path: evidence ledger
 
 **Authority:** `cli-surface-v3.md` `repo add` (local-path paragraph); V3ACQ-02; V3SEC-05 and V3SEC-07 unchanged. **Base:** release head `9958673e187336740adff82ae6646457e2a0d529`.
 

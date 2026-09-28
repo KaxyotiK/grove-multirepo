@@ -26,38 +26,38 @@
 2. Wait until stdout and stderr have delivered everything already written, then exit explicitly with the command's code. Settle the wait if the reader hangs up, so exit codes and signals are unchanged. Dependency: 1. Proof: the same test file green, including the hangup control.
 3. Run the full local gate, pack, and install into an isolated prefix, then pipe a large installed result into a JSON parser. Dependency: 2. Proof: `reviews/json-output-flush-ledger.md`.
 
-## Issue #27 recoverable acquisition abandonment
+## Recoverable acquisition abandonment
 
 **Authority:** constitution 6.0.0 Principles IV–V; FR-024; CLI and JSON result contracts; V3OPS-07. **Observed baseline:** at `885253f`, a real interrupted `repo add` with a removed remote resumes as recoverable `git-failed`. The published remedy offers only resume, while `--abandon` refuses recoverable state and keeps the alias locked.
 
-1. Add real interruption and removed-remote V3OPS-07 witnesses on the frozen base, including owned empty anchor, replacement, added content, refs/worktree, and ineligible records. Proof: `node --test tests/cli/repo-add-abandon-27.test.ts` red for the eligible cases.
+1. Add real interruption and removed-remote V3OPS-07 witnesses on the frozen base, including owned empty anchor, replacement, added content, refs/worktree, and ineligible records. Proof: `node --test tests/cli/repo-add-abandon.test.ts` red for the eligible cases.
 2. Amend the active spec and contracts to admit only recoverable `repo add` with durable `git-failed` evidence, retaining current identity and preservation rules. Dependency: 1. Proof: cross-artifact analysis against FR-024 and V3OPS-07.
 3. Share the eligibility check between the operation store and reconcile; inspect the owned anchor at point of use, remove only an empty acquisition shell, and retain other successful artifacts. Give exact resume/abandon remedies. Dependency: 2. Proof: focused green witness.
 4. Run the full local gate and isolated packed global install. Dependency: 3. Proof: `/opt/homebrew/bin/npm run typecheck && /opt/homebrew/bin/npm test && /opt/homebrew/bin/npm run scan && /opt/homebrew/bin/npm run traceability`, followed by `npm pack`, isolated `npm install -g --prefix`, and installed `grove --version`.
 
 Independent review of frozen `4fa9bf2` found that the empty-shell name/type check could delete user edits to Git's initial `description`, `info/exclude`, `HEAD`, `config`, or sample hooks. It also found that retained nested files were omitted from `survivingArtifacts`. The approved rework keeps the same FR-024/V3OPS-07 boundary:
 
-5. Capture behavioral red witnesses on frozen `4fa9bf2` for changed scaffold bytes and an added nested hook; include a custom repository layout, custom Git template, and missing proof as preservation controls. Dependency: 4. Proof: focused CLI reds and controls in `tests/cli/repo-add-abandon-27.test.ts` (V3OPS-07 cases); the red run logs were kept outside the repository.
+5. Capture behavioral red witnesses on frozen `4fa9bf2` for changed scaffold bytes and an added nested hook; include a custom repository layout, custom Git template, and missing proof as preservation controls. Dependency: 4. Proof: focused CLI reds and controls in `tests/cli/repo-add-abandon.test.ts` (V3OPS-07 cases); the red run logs were kept outside the repository.
 6. Record a bounded content/metadata digest only for the default-template acquisition shell; require a complete match plus existing filesystem identity and native Git emptiness checks at cleanup. Retain any uncertain anchor and itemize nested content without recording raw Git config, template, hook, or credential bytes. Dependency: 5. Proof: V3OPS-07 and V3OPS-02 focused CLI green, including the custom-layout witnesses.
-7. Repeat the full prescribed local gate and isolated package install, then obtain independent review of the frozen new head. Dependency: 6. Proof: exact gate/pack commands and reviewer disposition in `reviews/repo-add-abandon-27-ledger.md`.
+7. Repeat the full prescribed local gate and isolated package install, then obtain independent review of the frozen new head. Dependency: 6. Proof: exact gate/pack commands and reviewer disposition in `reviews/repo-add-abandon-ledger.md`.
 
 Independent review of frozen `68dc579` found a further P0: the proof was first captured after `git remote add`, so user bytes placed in an initial Git file while that command was paused were adopted as Grove-owned and deleted on abandon. Owner authorized continuation after an automated review halt; neither prior DO NOT MERGE verdict is an approval.
 
-8. Capture behavioral reds on exact `68dc579` for unique description and nested exclude bytes written while `git remote add` is paused, then explicit abandon. Dependency: 7. Proof: `tests/cli/repo-add-abandon-27.test.ts` (V3OPS-07 description/exclude cases) shows two real-Git content-loss failures; the red run log was kept outside the repository.
+8. Capture behavioral reds on exact `68dc579` for unique description and nested exclude bytes written while `git remote add` is paused, then explicit abandon. Dependency: 7. Proof: `tests/cli/repo-add-abandon.test.ts` (V3OPS-07 description/exclude cases) shows two real-Git content-loss failures; the red run log was kept outside the repository.
 9. Establish genesis from Grove-created anchor identity and a pristine default-template Git initialization; persist bounded metadata/content hashes only. Require exact comparison before and after the known remote config mutation in direct execution and recovery. Never create missing genesis from an already existing anchor. Dependency: 8. Proof: V3OPS-07 and V3OPS-02 focused green, including post-init and post-remote-add crash controls.
 10. Repeat the full prescribed local gate and isolated package install, then freeze a new head for fresh independent review. Dependency: 9. Proof: complete command logs, pack/version, clean commit, and reviewer disposition in round-three report.
 
-## Issue #18 repository-slot ownership correction
+## Repository-slot ownership correction
 
 **Authority:** constitution 6.0.0 Principles I and V; FR-006, FR-027-FR-029; contract `config-v3.md` (Layout templates); V3LAY-07 and V3LAY-08. **Observed baseline:** on `885253f`, under `groves/{grove}/trees/{repo}/{tree}`, a Tree of repository alpha moved with native Git into beta's `{repo}` slot was classified as conforming: `doctor` reported nothing and `fix --move` had nothing to plan (exit 5). **Outcome:** direct Tree classification compares the `{repo}` segment with the registration Git reports as the owner. A mismatch is `misplaced`, with the owner's slot as its expected path, so the existing audit and `fix --move` path report and repair it. Destructive commands, recovery and reconcile are unchanged.
 
-1. Convert the issue #18 `test.todo` into V3LAY-07 and add V3LAY-08 controls; observe V3LAY-07 failing on the unmodified source for the missing `misplaced` diagnostic. Proof: focused `tests/cli/layout-templates-v3.test.ts` run.
+1. Convert the repository-slot ownership `test.todo` into V3LAY-07 and add V3LAY-08 controls; observe V3LAY-07 failing on the unmodified source for the missing `misplaced` diagnostic. Proof: focused `tests/cli/layout-templates-v3.test.ts` run.
 2. Compute the owner-slot expected path in direct Tree classification. Dependency: 1. Proof: the same focused run is green.
 3. Record the rule in the config contract, the scenario rows, and the evidence ledger. Dependency: 2. Proof: `npm run traceability`.
 4. Run the full local gate and installed package proof. Dependency: 3. Proof: `npm run typecheck && npm test && npm run scan && npm run traceability`, then pack, isolated global install, and installed `grove --version`.
 5. Review round 2 (review of `d442b6d`). Merge release head `6b21d17` (F4). Add the V3LAY-09 witness, observe it red on `d442b6d`, and then compare the `{repo}` segment under the repository-name case-folding (F1). Amend spec US3 scenario 5 to agree with V3LAY-07 (F3), and drop the stale defect message (F5). The review's F2 (two moves to one destination) and F6 (the issue's `new`-resume paragraph) are separate issues. Dependency: 4. Proof: as step 4.
 
-## Round 8 native filesystem Git identity correction (issue #9)
+## Round 8 native filesystem Git identity correction
 
 **Authority:** constitution 6.0.0 Principles IV–V; FR-012D/FR-021/FR-023A; V3DES-01. **Observed baseline:** independent review of `b330ba0` reproduced direct and resumed removal of linked worktree content when its Git administrative file was named `.GIT` on case-insensitive APFS, and direct removal of a bare repository whose `HEAD` was named `head`. A non-Git bare-shaped directory was incorrectly asserted as proved ownership. **Outcome:** inspect marker names using the filesystem's own lookup semantics, exempt the observed outer worktree by device/inode, and ask native Git to verify marked and bare-shaped directories. Unverified or unsafe Git-like metadata refuses as ambiguous without falsely claiming a confirmed owner.
 
@@ -66,7 +66,7 @@ Independent review of frozen `68dc579` found a further P0: the proof was first c
 3. Align the active spec and contracts and record the independent review dispositions in the round-eight ledger without rewriting historical records. Dependency: 2. Proof: traceability and document review.
 4. Verify the frozen source and isolated installed artifact. Dependency: 3. Proof: `npm run typecheck && npm test && npm run scan && npm run traceability`, then pack, isolated global install, and installed `grove --version`.
 
-## Round 7 independent Git ownership correction (issue #9)
+## Round 7 independent Git ownership correction
 
 **Authority:** constitution 6.0.0 Principle IV; FR-021/FR-023/FR-023A; V3DES-01. **Observed baseline:** independent review of `9341205` reproduced loss of ignored and ordinary nested repositories during direct removal and replay, and silent loss of ignored submodule work under ignored-only consent. The outer Git inventory collapses a nested repository to one directory or omits a tracked submodule's inner work. **Outcome:** identify independently owned nested Git checkouts and bare repositories through native-byte filesystem observation at every structural preflight and point of use. An observed outer worktree's own `.git` is exempt only at its root. Both destructive permission levels and recovery refuse a nested owner with an actionable path. Ordinary ignored directories retain the round-six exact-file consent behavior.
 
@@ -75,7 +75,7 @@ Independent review of frozen `68dc579` found a further P0: the proof was first c
 3. Update FR-023A, V3DES-01, the CLI contract, tasks and evidence ledger without rewriting historical reports. Dependency: 2. Proof: `npm run traceability` and document review.
 4. Verify the exact head and isolated installed artifact before another independent review. Dependency: 3. Proof: `npm run typecheck && npm test && npm run scan && npm run traceability`, followed by pack, isolated global install and `grove --version`.
 
-## Round 6 destructive containment amendment (issue #9)
+## Round 6 destructive containment amendment
 
 **Authority:** constitution 6.0.0; FR-023/FR-023A; CLI surface ruling ④; V3DES-01/03. **Observed baseline:** review-9-round5 reproduced unflagged ignored-file deletion, blind replay of a newly ignored file, and a direct receipt reporting a vanished preflight file. **Outcome:** exact ignored-file inventory and two explicit permission levels, with point-of-use receipts and recorded-set recovery. Existing structural and unpushed checks still apply.
 
@@ -361,7 +361,7 @@ The final cutover accepts schema 3 only and refuses every foreign schema before 
 3. Define structural Tree slot paths once in layout code and use them in loose-content inventory at delete plan and point of use, preserving ordinary loose-file protection. Coordinate recovery reuse with its owning lane. Dependency: 1.
 4. Run focused witnesses, then the full local gate once at default concurrency. Record passing witnesses in the traceability ledger; commit and open a PR for independent review. Dependency: 2 and 3.
 
-## Issue #32 delete observation cost
+## Delete observation cost
 
 **Authority:** FR-053; `cli-surface-v3.md` §Delete observation efficiency; V3DPF-01–02; constitution IV. **Measured baseline at `6aa08af`:** direct clean deletion of one, two, and four Trees used 73, 186, and 532 Git calls, respectively, with 1.41, 3.12, and 8.71 seconds elapsed on the local machine. Repeated full workspace observations account for the rising status, ignored-file, upstream, and sequencer probes.
 

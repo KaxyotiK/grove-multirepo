@@ -78,7 +78,7 @@ test("008 validator: citations require exact FAMILY-NN IDs in executable, uncomm
 });
 
 test("008 validator: only tables headed `ID` are scenario tables; other tables in the contract are prose", () => {
-  // Issue #7. Every pipe row used to be read as a scenario, so an explanatory table was silently
+  // Every pipe row used to be read as a scenario, so an explanatory table was silently
   // adopted as live scenarios owing witnesses.
   const input = fixture(
     ["| ALPHA-01 | setup | result |", "", "| Term | Meaning |", "|---|---|", "| Gamma | an explanatory row |", "| not an id | prose |"],

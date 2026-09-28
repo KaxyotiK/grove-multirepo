@@ -21,7 +21,7 @@
 | `new` with no `--repo` selects every repository | ruling ① | empty Grove; `--all` fans out |
 | `tree remove --force` | ruling ④ | `--allow-destructive` |
 | `migrate` family | ruling ⑤ | no migration command |
-| `--abandon` for conflicted or stale | issue #6 (commit `c11bcbe`) | conflicted only |
+| `--abandon` for conflicted or stale | commit `c11bcbe` | conflicted only |
 | `doctor --strict` maps policy diagnostics to 3 | `V3DIAG-02` | policy or blocking → 3 |
 | `doctor --strict` exit row in the `json-results-v1.md` table reads "strict policy diagnostics" | `V3DIAG-02` | "strict policy or blocking diagnostics" |
 | Exit 8/9 migration wording | ruling ⑤; `json-results-v1.md` table | the existing table (already current) |

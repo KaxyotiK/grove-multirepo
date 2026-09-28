@@ -4,7 +4,7 @@
  * macOS vets every newly created executable on its first run (syspolicyd), and those checks queue
  * across the whole system. A suite that writes a fresh `git` shim per test and runs its files in
  * parallel stacks dozens of those first runs, and each one can take seconds: a 5-second Git-gate
- * wait then times out for reasons unrelated to the test (issue #14). A file that has already run
+ * wait then times out for reasons unrelated to the test. A file that has already run
  * once starts in milliseconds, and so does a hard link or symlink to it — measured on macOS, 40
  * concurrent first runs of fresh scripts took a median of 3.4 s (max 6.4 s) against 179 ms (max
  * 262 ms) through fresh hard links to one already-run script.

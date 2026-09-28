@@ -65,7 +65,7 @@ As a developer, I can audit the whole workspace or a selected Grove or repositor
 2. **Given** two distinct problems that look similar in presentation, **When** Grove emits diagnostics, **Then** their identifiers remain distinct and each remedy targets only its own subject.
 3. **Given** a uniquely resolvable misplaced worktree, **When** a user previews a move, **Then** Grove shows the exact target and makes no changes.
 4. **Given** a diagnostic that has changed or disappeared since it was displayed, **When** a user requests its fix, **Then** Grove refuses as stale rather than acting on the old observation.
-5. **Given** ambiguous, occupied, locked, or unsafe move conditions, **When** a user requests a fix, **Then** Grove refuses without changing Git state or deleting files. **Amended 2026-09-24 (issue #18 review F3):** uncommitted work is not a refusal condition; a dirty Tree moves with its work intact (`V3LAY-07`).
+5. **Given** ambiguous, occupied, locked, or unsafe move conditions, **When** a user requests a fix, **Then** Grove refuses without changing Git state or deleting files. **Amended 2026-09-24 (review F3):** uncommitted work is not a refusal condition; a dirty Tree moves with its work intact (`V3LAY-07`).
 
 ---
 

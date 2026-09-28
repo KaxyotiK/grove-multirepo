@@ -1,4 +1,4 @@
-# Issue #27 recovery evidence
+# Recoverable `repo add` abandonment: evidence
 
 **Authority:** constitution 6.0.0 Principles IV–V; FR-024; CLI and JSON result contracts; V3OPS-07. **Frozen predecessor:** `885253fd1c86d7e605447446603b93056aec3f5e`.
 
@@ -13,7 +13,7 @@ The issue is a durable-state dead end: after an interrupted fetch and loss of th
 | Running and unrelated recoverable operations remain ineligible | implemented:verified-local | V3OPS-07 negative controls for running, other kind and non-Git recoverable reason |
 | Git failure offers exact resume and abandon remedies | implemented:verified-local | V3OPS-07 recovery result and blocked add error |
 
-The red run used the exact predecessor source and the new test file, `tests/cli/repo-add-abandon-27.test.ts`; the run log and the archived baseline source were kept outside the repository. It reported 8 tests, 1 pass and 7 failures; each failing eligible case reached the old exit-5 `Cannot abandon operation ... its durable state is recoverable` refusal. The unaffected ineligible control passed. This is a behavioral red rather than a missing-command or missing-test failure.
+The red run used the exact predecessor source and the new test file, `tests/cli/repo-add-abandon.test.ts`; the run log and the archived baseline source were kept outside the repository. It reported 8 tests, 1 pass and 7 failures; each failing eligible case reached the old exit-5 `Cannot abandon operation ... its durable state is recoverable` refusal. The unaffected ineligible control passed. This is a behavioral red rather than a missing-command or missing-test failure.
 
 The active spec, implementation plan, tasks and contracts agree: FR-024 admits only `repo add` with durable recoverable `git-failed` evidence; V3OPS-07 covers both release of the logical alias and preservation of physical Git/user artifacts. Existing V3OPS-02 remains the conflicting acquisition regression authority; historical scenario IDs were not renumbered.
 

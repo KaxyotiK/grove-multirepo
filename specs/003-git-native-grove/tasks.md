@@ -26,35 +26,35 @@ Completion evidence is in `reviews/json-output-flush-ledger.md`; checkboxes are 
 - [ ] T-FLUSH-2 Drain stdout and stderr before an explicit exit with the command's code — depends on T-FLUSH-1; FR-033A, TRACE-OUT-FLUSH; proof: V3OUT-04 green.
 - [ ] T-FLUSH-3 Full local gate, isolated packed install and installed pipe check — depends on T-FLUSH-2; TRACE-OUT-FLUSH; proof: gate totals and pipe evidence in the ledger.
 
-## Issue #27 recoverable acquisition abandonment
+## Recoverable acquisition abandonment
 
-Completion evidence belongs in the branch's issue #27 report; task checkboxes are not evidence.
+Completion evidence belongs in the branch's recovery report; task checkboxes are not evidence.
 
-- [ ] T-27-1 Add a real interrupted fetch and removed-remote behavioral red witness for V3OPS-07 on frozen `885253f`, plus owned/replaced/modified anchors, successful artifacts, and ineligible controls — FR-024; proof: focused CLI test showing intended old refusal.
-- [ ] T-27-2 Update FR-024 and active CLI/JSON/scenario contracts for scoped explicit abandonment and preservation — depends on T-27-1; proof: read-only cross-artifact analysis.
-- [ ] T-27-3 Implement shared eligibility and point-of-use owned-anchor inspection without deleting successful artifacts; report resume/abandon remedies — depends on T-27-2; proof: focused V3OPS-07 CLI green and existing V3OPS-02 regressions.
-- [ ] T-27-4 Verify full local gate and isolated packed global install — depends on T-27-3; proof: full prescribed npm command, pack, isolated install and installed version.
-- [ ] T-27-5 Reproduce independent scaffold-deletion and omitted-nested-artifact findings with behavioral reds on frozen `4fa9bf2` — FR-024/V3OPS-07; depends on T-27-4; proof: six scaffold red cases and a nested-hook red case in the branch's ignored evidence logs.
-- [ ] T-27-6 Require content-sensitive, default-template acquisition proof as well as recorded filesystem identity and native Git emptiness before deletion; fail closed for changed, unreadable, custom-template, or proof-free anchors and report nested retained content — FR-024/V3OPS-07; depends on T-27-5; proof: focused CLI green including custom layout.
-- [ ] T-27-7 Repeat full local gate and isolated installed package proof, then freeze a new commit for independent review — depends on T-27-6; proof: exact command output and review disposition in the issue #27 report.
-- [ ] T-27-8 Capture late-snapshot content-loss reds on frozen `68dc579` while remote add is paused — FR-024/V3OPS-07; depends on T-27-7; proof: two deleted user files in the ignored round-three red log.
-- [ ] T-27-9 Establish genesis at Grove-created anchor initialization and validate only the exact remote-add transition in both direct and resumed execution; retain missing or changed proof, and cover post-init/post-remote-add crash windows — FR-024/V3OPS-07; depends on T-27-8; proof: focused CLI green with previous regressions.
-- [ ] T-27-10 Run full local gate and isolated installed package proof, freeze a clean commit, then request fresh independent review — depends on T-27-9; proof: exact logs and review disposition in report-27-round3.md.
+- [ ] T-ABN-1 Add a real interrupted fetch and removed-remote behavioral red witness for V3OPS-07 on frozen `885253f`, plus owned/replaced/modified anchors, successful artifacts, and ineligible controls — FR-024; proof: focused CLI test showing intended old refusal.
+- [ ] T-ABN-2 Update FR-024 and active CLI/JSON/scenario contracts for scoped explicit abandonment and preservation — depends on T-ABN-1; proof: read-only cross-artifact analysis.
+- [ ] T-ABN-3 Implement shared eligibility and point-of-use owned-anchor inspection without deleting successful artifacts; report resume/abandon remedies — depends on T-ABN-2; proof: focused V3OPS-07 CLI green and existing V3OPS-02 regressions.
+- [ ] T-ABN-4 Verify full local gate and isolated packed global install — depends on T-ABN-3; proof: full prescribed npm command, pack, isolated install and installed version.
+- [ ] T-ABN-5 Reproduce independent scaffold-deletion and omitted-nested-artifact findings with behavioral reds on frozen `4fa9bf2` — FR-024/V3OPS-07; depends on T-ABN-4; proof: six scaffold red cases and a nested-hook red case in the branch's ignored evidence logs.
+- [ ] T-ABN-6 Require content-sensitive, default-template acquisition proof as well as recorded filesystem identity and native Git emptiness before deletion; fail closed for changed, unreadable, custom-template, or proof-free anchors and report nested retained content — FR-024/V3OPS-07; depends on T-ABN-5; proof: focused CLI green including custom layout.
+- [ ] T-ABN-7 Repeat full local gate and isolated installed package proof, then freeze a new commit for independent review — depends on T-ABN-6; proof: exact command output and review disposition in the recovery report.
+- [ ] T-ABN-8 Capture late-snapshot content-loss reds on frozen `68dc579` while remote add is paused — FR-024/V3OPS-07; depends on T-ABN-7; proof: two deleted user files in the ignored round-three red log.
+- [ ] T-ABN-9 Establish genesis at Grove-created anchor initialization and validate only the exact remote-add transition in both direct and resumed execution; retain missing or changed proof, and cover post-init/post-remote-add crash windows — FR-024/V3OPS-07; depends on T-ABN-8; proof: focused CLI green with previous regressions.
+- [ ] T-ABN-10 Run full local gate and isolated installed package proof, freeze a clean commit, then request fresh independent review — depends on T-ABN-9; proof: exact logs and review disposition in report-27-round3.md.
 
-## Issue #18 repository-slot ownership correction
+## Repository-slot ownership correction
 
-Completion evidence belongs in `reviews/tree-slot-owner-issue18-ledger.md`; checkboxes are not evidence.
+Completion evidence belongs in `reviews/tree-slot-owner-ledger.md`; checkboxes are not evidence.
 
-- [ ] T-I18-1 Convert the issue #18 todo into the V3LAY-07 witness and add V3LAY-08 controls; capture V3LAY-07 red on unmodified `885253f` for the missing `misplaced` diagnostic — FR-006; proof: focused `tests/cli/layout-templates-v3.test.ts` run.
-- [ ] T-I18-2 Classify a Tree whose `{repo}` segment differs from its Git-reported owner as misplaced toward the owner's slot, without touching destructive, recovery or reconcile code — FR-006/FR-027-FR-029; depends on T-I18-1; proof: the same focused run.
-- [ ] T-I18-3 Record the owner-slot rule in `contracts/config-v3.md`, the V3LAY-07/08 scenario rows, and the evidence ledger — FR-051A; depends on T-I18-2; proof: `npm run traceability`.
-- [ ] T-I18-4 Run the full local gate and installed package proof — FR-051B; depends on T-I18-3; proof: `npm run typecheck && npm test && npm run scan && npm run traceability`, then isolated pack/install/version.
-- [ ] T-I18-5 Review round 2 (F4): merge release head `6b21d17` without rewriting history, keeping both new top sections of plan and tasks — FR-051A; proof: merge tree equals the reviewed test merge.
-- [ ] T-I18-6 Review round 2 (F1): add the V3LAY-09 case-variant witness and capture it red on `d442b6d`, then compare the `{repo}` segment under repository-name case-folding and align the config contract — FR-006; depends on T-I18-5; proof: focused layout run.
-- [ ] T-I18-7 Review round 2 (F3, F5): amend spec US3 scenario 5 to agree with V3LAY-07 and drop the stale defect message from the witness — FR-051A; depends on T-I18-6; proof: `npm run traceability`.
-- [ ] T-I18-8 Repeat the full local gate and installed package proof — FR-051B; depends on T-I18-7; proof: as T-I18-4.
+- [ ] T-SLOT-1 Convert the repository-slot ownership todo into the V3LAY-07 witness and add V3LAY-08 controls; capture V3LAY-07 red on unmodified `885253f` for the missing `misplaced` diagnostic — FR-006; proof: focused `tests/cli/layout-templates-v3.test.ts` run.
+- [ ] T-SLOT-2 Classify a Tree whose `{repo}` segment differs from its Git-reported owner as misplaced toward the owner's slot, without touching destructive, recovery or reconcile code — FR-006/FR-027-FR-029; depends on T-SLOT-1; proof: the same focused run.
+- [ ] T-SLOT-3 Record the owner-slot rule in `contracts/config-v3.md`, the V3LAY-07/08 scenario rows, and the evidence ledger — FR-051A; depends on T-SLOT-2; proof: `npm run traceability`.
+- [ ] T-SLOT-4 Run the full local gate and installed package proof — FR-051B; depends on T-SLOT-3; proof: `npm run typecheck && npm test && npm run scan && npm run traceability`, then isolated pack/install/version.
+- [ ] T-SLOT-5 Review round 2 (F4): merge release head `6b21d17` without rewriting history, keeping both new top sections of plan and tasks — FR-051A; proof: merge tree equals the reviewed test merge.
+- [ ] T-SLOT-6 Review round 2 (F1): add the V3LAY-09 case-variant witness and capture it red on `d442b6d`, then compare the `{repo}` segment under repository-name case-folding and align the config contract — FR-006; depends on T-SLOT-5; proof: focused layout run.
+- [ ] T-SLOT-7 Review round 2 (F3, F5): amend spec US3 scenario 5 to agree with V3LAY-07 and drop the stale defect message from the witness — FR-051A; depends on T-SLOT-6; proof: `npm run traceability`.
+- [ ] T-SLOT-8 Repeat the full local gate and installed package proof — FR-051B; depends on T-SLOT-7; proof: as T-SLOT-4.
 
-## Round 8 native filesystem Git identity correction (issue #9)
+## Round 8 native filesystem Git identity correction
 
 Completion evidence belongs in `reviews/contained-path-round8-ledger.md`; checkboxes are not evidence. The round-seven ledger remains historical and its broad structural claims are superseded for the case-alias shapes identified by independent review.
 
@@ -63,7 +63,7 @@ Completion evidence belongs in `reviews/contained-path-round8-ledger.md`; checkb
 - [ ] T-R8-3 Update active spec/contract/plan and append a round-eight evidence ledger without rewriting historical records — FR-023A/FR-051A; depends on T-R8-2; proof: traceability and document review.
 - [ ] T-R8-4 Run the full local gate and installed package proof — FR-051B; depends on T-R8-3; proof: `npm run typecheck && npm test && npm run scan && npm run traceability`, then isolated pack/install/version.
 
-## Round 7 independent Git ownership correction (issue #9)
+## Round 7 independent Git ownership correction
 
 Completion evidence is in `reviews/contained-path-round7-ledger.md`; these checkboxes are not evidence. Round six remains historical and its broader structural claims are superseded for the nested Git shapes identified in independent review.
 
@@ -72,7 +72,7 @@ Completion evidence is in `reviews/contained-path-round7-ledger.md`; these check
 - [ ] T-R7-3 Align active spec and contracts and record limitations in the round-seven ledger — FR-023A/FR-051A; depends on T-R7-2; proof: traceability and document review.
 - [ ] T-R7-4 Run full local gates and installed package proof — FR-051B; depends on T-R7-3; proof: `npm run typecheck && npm test && npm run scan && npm run traceability`, then isolated pack/install/version.
 
-## Round 6 destructive containment amendment (issue #9)
+## Round 6 destructive containment amendment
 
 Completion evidence is in `reviews/contained-path-round6-ledger.md`; these checkboxes are not evidence.
 
@@ -385,7 +385,7 @@ This phase closes the PR review's demonstrated output-conformance bug without ad
 - [x] T121 [US7] Implement shared audit and recovery corrections in `src/commands/doctor.ts`, `src/commands/reconcile.ts`, and the recovery helper and paths of `src/commands/lifecycle.ts`.
 - [x] T122 [US7] Run focused tests and the full local gate, append passing witnesses to `traceability.md`, and record user-visible corrections in `CHANGELOG.md`.
 
-## Issue #32 delete observation cost
+## Delete observation cost
 
 - [ ] T-DPF-1 Record one-, two-, and four-Tree Git-call and elapsed-time baselines using the passive PATH proxy — FR-053, V3DPF-01; proof: external baseline log.
 - [ ] T-DPF-2 Add the failing V3DPF-01 call-count witness and V3DPF-02 work/loose-content refusal controls — FR-053; proof: focused red on `6aa08af`.

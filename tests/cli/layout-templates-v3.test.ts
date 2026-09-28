@@ -418,10 +418,10 @@ function misplacedFacts(doctor: any): Array<{ subject: unknown; currentPath: unk
     .map((entry: any) => ({ subject: entry.subject, currentPath: entry.facts.currentPath, expectedPath: entry.facts.expectedPath }));
 }
 
-// Issue #18: the `{repo}` segment of a repository-grouped Tree path was extracted but never compared
+// The `{repo}` segment of a repository-grouped Tree path was extracted but never compared
 // with the repository whose `git worktree list` reports the worktree, so a Tree moved by native Git
 // into another repository's slot was silently treated as conforming.
-test("V3LAY-07: issue #18 — a Tree in another repository's grouped slot is misplaced and fix --move returns it with its work to its owner's slot", () => {
+test("V3LAY-07: a Tree in another repository's grouped slot is misplaced and fix --move returns it with its work to its owner's slot", () => {
   const fx = makeFixture({ repos: { alpha: [], beta: [] } });
   initWithLayout(fx, { trees: "groves/{grove}/trees/{repo}/{tree}" });
   const alphaId = addRepository(fx, "alpha").targets[0].after.repositoryId;
