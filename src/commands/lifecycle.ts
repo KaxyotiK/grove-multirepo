@@ -5,7 +5,7 @@
  * Destructive permission is explicit and scoped to the listed work classes. Lifecycle operations retain every
  * Git ref; explicit branch deletion remains a native Git action.
  */
-import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readdirSync } from "node:fs";
 import type { Dirent } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { GroveError } from "../errors.ts";
@@ -17,7 +17,8 @@ import { requireWorkspace } from "../config/workspace.ts";
 import { newGroveManifest, saveGroveManifest } from "../config/grove.ts";
 import { assertDestructiveMutationPath, assertWorktreeMutationPath, observeWorkspace } from "../model/observed.ts";
 import { commandResultExit, completeResult, type ResultTarget } from "../model/result.ts";
-import { compileLayout, expandArchivePath, expandGrovePath, expandTreePath, resolveLayoutTarget, structuralTreeSlotPaths } from "../config/layout.ts";
+import { compileLayout, expandArchivePath, expandGrovePath, expandTreePath, matchLayoutPath, resolveLayoutTarget, structuralTreeSlotPaths } from "../config/layout.ts";
+import { scanTemplateCandidates } from "../config/discovery.ts";
 import { centralGroveManifest } from "../paths/layout.ts";
 import { assertDirectoryContainsOnlyRoots, collectDirectoryMergeRoots, containedPath, inventoryLooseContent, looseEntryLabel, mergeDirectoryForward, moveContainedDirectory, persistedLooseInventory, removeContainedDirectory, removeContainedFile, unaccountedEntries, unconsentedLooseEntries, type LooseInventory } from "../paths/fs.ts";
 import { assertTargetsAvailable, beginOperation, captureDirectoryTarget, recordCompleted, recordPending, recordStepFailure, withOperationTargetLocks } from "../store/operation.ts";
@@ -230,7 +231,11 @@ async function archiveHandler(ctx: CommandContext): Promise<number> {
     if (grove.metadata?.state === "archived") throw new GroveError({ kind: "refused-precondition", what: `Cannot archive "${grove.name}"`, why: "it is already archived", remedy: "Restore or delete it instead." });
     const activePath = expandGrovePath(snapshot.layout, grove.name);
     const unavailable = snapshot.repositories.filter((repository) => repository.registration && repository.problem);
-    if (unavailable.length) {
+    const observedPaths = new Set(snapshot.repositories.flatMap((repository) => repository.worktrees.flatMap((tree) => tree.path.utf8 ? [resolve(tree.path.utf8)] : [])));
+    const unobservedTreePaths = unavailable.length ? scanTemplateCandidates(snapshot.layout.workspaceRoot, snapshot.layout.config.trees)
+      .filter((path) => matchLayoutPath(snapshot.layout, path)?.grove === grove.name && !observedPaths.has(resolve(path)))
+      .filter((path) => { try { lstatSync(join(path, ".git")); return true; } catch (error) { return (error as NodeJS.ErrnoException).code !== "ENOENT"; } }) : [];
+    if (unobservedTreePaths.length) {
       // A failed Git inspection yields zero observed Trees, which does not prove that the Grove
       // contains none. Itemize everything the directory move could carry, without treating the
       // filesystem positions as proof of Git membership or following symlinks.
@@ -249,7 +254,7 @@ async function archiveHandler(ctx: CommandContext): Promise<number> {
         }
       };
       if (existsSync(activePath)) walk(activePath, 0);
-      throw new GroveError({ kind: "refused-precondition", what: `Cannot archive "${grove.name}"`, why: `repository inspection failed, so Tree membership cannot be determined: ${unavailable.map((repository) => repository.registration!.name).join(", ")}; content at risk: ${atRisk.join(", ") || "unknown"}`, remedy: "Restore access to the listed repositories, run `grove doctor`, then retry archive.", detail: { repositories: unavailable.map((repository) => ({ repositoryId: repository.registration!.id, repositoryAlias: repository.registration!.name, problem: repository.problem })), atRisk } });
+      throw new GroveError({ kind: "refused-precondition", what: `Cannot archive "${grove.name}"`, why: `repository inspection failed and Git-marked Tree positions cannot be accounted for: ${unobservedTreePaths.map((path) => relative(ws.root, path)).join(", ")}; content at risk: ${atRisk.join(", ") || "unknown"}`, remedy: "Restore access to the listed repositories, run `grove doctor`, then retry archive.", detail: { repositories: unavailable.map((repository) => ({ repositoryId: repository.registration!.id, repositoryAlias: repository.registration!.name, problem: repository.problem })), unobservedTreePaths, atRisk } });
     }
     await refuseUnsafe(g, snapshot, grove.trees, destructiveConsent(parsed.values));
     await refuseUndurable(g, snapshot, grove.trees, parsed.values["allow-unpushed"] === true);

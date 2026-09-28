@@ -43,6 +43,22 @@ test("V3ALY-01: archive refuses uninspectable repository and itemizes Tree conte
   assert.deepEqual({ refused: run.status !== 0, atRisk: JSON.stringify(result).includes("at-risk.txt"), treeNamed: JSON.stringify(result).includes("demo@alpha"), preserved: readFileSync(untracked, "utf8"), archiveAbsent: !existsSync(join(fx.root, "archives", "demo")), registrationUnchanged: after === before, noNewOperation: JSON.stringify(operations(fx.root)) === JSON.stringify(records) }, { refused: true, atRisk: true, treeNamed: true, preserved: "keep me\n", archiveAbsent: true, registrationUnchanged: true, noNewOperation: true });
 });
 
+test("V3ALY-01: an unrelated unavailable repository does not block archive of fully observed or empty Groves", () => {
+  const fx = makeFixture({ repos: { alpha: [], beta: [] } });
+  success(fx.grove(["--json", "init"]));
+  for (const repo of fx.repos) success(fx.grove(["--json", "repo", "add", repo.origin, "--name", repo.name]));
+  success(fx.grove(["--json", "new", "observed", "--repo", "alpha"]));
+  success(fx.grove(["--json", "new", "empty"]));
+  const beta = join(fx.root, "repos", "beta");
+  renameSync(beta, `${beta}.offline`);
+  const observed = fx.grove(["--json", "archive", "observed", "--allow-unpushed"]);
+  const empty = fx.grove(["--json", "archive", "empty"]);
+  assert.equal(observed.status, 0, observed.stdout);
+  assert.equal(empty.status, 0, empty.stdout);
+  assert.equal(existsSync(join(fx.root, "archives", "observed")), true);
+  assert.equal(existsSync(join(fx.root, "archives", "empty")), true);
+});
+
 test("V3ALY-02: empty repository Tree slots do not require destructive consent, but files in them do", () => {
   const fx = grouped();
   success(fx.grove(["--json", "new", "demo", "--all"]));

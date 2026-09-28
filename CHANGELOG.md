@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Archive refuses and itemizes Tree-position content when a repository cannot be inspected, leaving worktree registrations and files in place.
+- Archive refuses and itemizes unobserved Git-marked Tree content when its repository cannot be inspected, leaving worktree registrations and files in place.
 - Empty Tree layout slots no longer require destructive consent for Grove deletion; ordinary files in those slots remain protected.
 - `fix --move` refuses colliding destinations before any move or operation record, and repairs case-variant owner slots on case-sensitive volumes.
 
