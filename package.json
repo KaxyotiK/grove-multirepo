@@ -1,0 +1,57 @@
+{
+  "name": "grove-multirepo",
+  "version": "0.3.0",
+  "description": "A single-command, workspace-local CLI for managing multi-repository units of work (Groves) built on Git worktrees.",
+  "keywords": [
+    "git",
+    "worktree",
+    "worktrees",
+    "multirepo",
+    "polyrepo",
+    "multi-repo",
+    "cli",
+    "workspace"
+  ],
+  "homepage": "https://github.com/KaxyotiK/grove-multirepo#readme",
+  "bugs": {
+    "url": "https://github.com/KaxyotiK/grove-multirepo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KaxyotiK/grove-multirepo.git"
+  },
+  "author": "KaxyotiK",
+  "type": "module",
+  "bin": {
+    "grove": "dist/grove.mjs"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "os": [
+    "darwin"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:module": "node --test 'tests/module/**/*.test.ts'",
+    "test:cli": "node --test 'tests/cli/**/*.test.ts'",
+    "test:e2e": "node --test 'tests/e2e/**/*.test.ts'",
+    "test": "npm run test:module && npm run build && npm run test:cli && npm run test:e2e",
+    "scan": "npm run build && bash scripts/legacy-scan.sh",
+    "traceability": "bash scripts/scenario-traceability.sh",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run typecheck && npm test"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "esbuild": "^0.24.2",
+    "typescript": "^5.7.2"
+  }
+}

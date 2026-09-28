@@ -1,0 +1,21 @@
+# Claude Code local state (permissions, machine-local overrides)
+.claude/settings.local.json
+
+# Node / build
+node_modules/
+dist/
+build/
+*.log
+.env*
+
+# Editor / OS scratch
+.DS_Store
+*.tmp
+*.swp
+.vscode/
+.idea/
+
+# Python / tooling
+__pycache__/
+*.pyc
+.venv/
