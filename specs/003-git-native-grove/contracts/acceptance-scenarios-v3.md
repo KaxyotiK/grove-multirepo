@@ -78,6 +78,9 @@ These scenarios supplement, and do not renumber or replace, the 180 scenarios in
 | V3LAY-07 | Under a repository-grouped Tree layout, a Tree that native Git moved into another repository's `{repo}` slot is reported by `doctor` as `misplaced` with the path its owning repository's slot expands to for its observed Grove and Tree names; `fix --move --dry-run` plans exactly that move without mutation, and `fix --move` moves it there with its unpushed commit and tracked, untracked, and ignored files intact, after which the Tree is conforming (issue #18). | Layout-template built-artifact CLI integration |
 | V3LAY-08 | A Tree renamed natively within its owner's `{repo}` slot and a correctly placed peer stay conforming with no planned move, and under Tree layouts without `{repo}` a Tree whose name follows another repository's convention stays its observed owner's conforming Tree. | Layout-template built-artifact CLI integration |
 | V3LAY-09 | Under a repository-grouped Tree layout, a Tree whose `{repo}` segment spells its owning repository's name in another ASCII case is conforming, and an unfiltered `fix --move` still moves another misplaced Tree to its owner's slot and leaves `doctor` clean. | Layout-template built-artifact CLI integration |
+| V3LCK-01 | A dead lock recorded with this Mac's hardware UUID is classified and reclaimed after its hostname label changes. | Lock-store module test |
+| V3LCK-02 | A dead lock recorded with a different hardware UUID is treated as foreign even when its hostname label matches the current hostname. | Lock-store module test |
+| V3LCK-03 | A 0.1.0 lock without a hardware UUID follows the existing hostname decision; an unavailable local UUID also uses that decision. | Lock-store module test |
 
 ## Retired v3 scenarios
 

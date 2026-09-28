@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Workspace locks use the Mac's hardware UUID when available, so a hostname change does not block recovery of this Mac's crashed lock. Existing 0.1.0 lock records and Macs where the UUID cannot be read retain hostname-based behavior.
+
 ## 0.1.0
 
 First public release, published to npm as `grove-multirepo`. The command is `grove`. Requires macOS, Node 24 or newer, and Git.

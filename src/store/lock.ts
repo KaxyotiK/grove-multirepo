@@ -5,10 +5,11 @@
  * goes through `rename()`, which is also atomic, gated behind its own `O_EXCL` intent file so
  * two stealers cannot both replace the lock. A live owner is never stolen.
  *
- * The lock's adjudication domain is a SINGLE HOST. Same-host holders are reclaimed when their
+ * The lock's adjudication domain is a SINGLE MACHINE (by hardware UUID when available, otherwise
+ * the legacy hostname). Same-machine holders are reclaimed when their
  * process is dead (fast path) or their heartbeat has frozen past `staleMs` (backstop for PID
  * reuse — a recycled PID looks alive forever, its heartbeat does not). A holder on a DIFFERENT
- * host is never reclaimed automatically: cross-host clock skew and NFS attribute caching make
+ * machine is never reclaimed automatically: cross-host clock skew and NFS attribute caching make
  * staleness untrustworthy, and worktrees are host-local anyway; the timeout refusal names the
  * remote holder so a human can delete the lock file if that machine is truly gone.
  *
@@ -37,6 +38,7 @@ export interface HolderRecord {
   token: string;
   pid: number;
   host: string;
+  machineId?: string;
   startedAt: number;
   heartbeatAt: number;
   op: string;
@@ -53,6 +55,42 @@ export interface LockOptions {
   now?: () => number;
   isPidAlive?: (pid: number) => boolean;
   sleep?: (ms: number) => Promise<void>;
+  /** Test seams for identity classification; production uses the Mac identity and hostname. */
+  machineId?: () => string | null;
+  host?: () => string;
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+let cachedMachineId: string | null | undefined;
+
+function localMachineId(): string | null {
+  if (cachedMachineId !== undefined) return cachedMachineId;
+  try {
+    const result = spawnSync("/usr/sbin/ioreg", ["-rd1", "-c", "IOPlatformExpertDevice"], {
+      encoding: "utf8", timeout: 2_000, maxBuffer: 64 * 1024,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    const matches = result.status === 0
+      ? [...result.stdout.matchAll(/^\s*"IOPlatformUUID"\s*=\s*"([^"]+)"\s*$/gm)]
+      : [];
+    cachedMachineId = matches.length === 1 && UUID.test(matches[0]![1]!)
+      ? matches[0]![1]!.toLowerCase()
+      : null;
+  } catch {
+    cachedMachineId = null;
+  }
+  return cachedMachineId;
+}
+
+function machineIdFor(opts: Pick<LockOptions, "machineId">): string | null {
+  const value = opts.machineId ? opts.machineId() : localMachineId();
+  return value && UUID.test(value) ? value.toLowerCase() : null;
+}
+
+function sameMachine(holder: HolderRecord, host: string, machineId: string | null): boolean {
+  return machineId && typeof holder.machineId === "string" && UUID.test(holder.machineId)
+    ? holder.machineId.toLowerCase() === machineId
+    : holder.host === host;
 }
 
 export const DEFAULT_STALE_MS = 30_000;
@@ -143,14 +181,14 @@ function stealMarkerIsAged(path: string, observedAt: number, staleMs: number): b
  */
 export function scanStaleLocks(
   locksDirPath: string,
-  opts: { now?: () => number; isPidAlive?: (pid: number) => boolean; staleMs?: number } = {},
+  opts: Pick<LockOptions, "now" | "isPidAlive" | "staleMs" | "machineId" | "host"> = {},
 ): LockAuditFinding[] {
   const now = opts.now ?? (() => Date.now());
   const holderAlive = opts.isPidAlive
     ? (holder: HolderRecord) => opts.isPidAlive!(holder.pid)
     : defaultHolderAlive;
   const staleMs = opts.staleMs ?? DEFAULT_STALE_MS;
-  const host = hostname();
+  const host = opts.host?.() ?? hostname();
   let files: string[];
   try {
     files = readdirSync(locksDirPath).filter((f) => !f.endsWith(".tmp"));
@@ -198,7 +236,7 @@ export function scanStaleLocks(
       } catch {
         classification = { state: "absent", finding: null };
       }
-    } else if (holder.host !== host) {
+    } else if (!sameMachine(holder, host, machineIdFor(opts))) {
       classification = {
         state: "held",
         finding: { kind: "stale-lock", file, holder, reason: `held from another host (${holder.host}); cross-host locks are never reclaimed automatically`, recovery: "manual" },
@@ -284,7 +322,8 @@ export async function acquire(lockPath: string, opts: LockOptions = {}): Promise
   const sleep = opts.sleep ?? ((ms: number) => new Promise((r) => setTimeout(r, ms)));
   const staleMs = opts.staleMs ?? DEFAULT_STALE_MS;
   const deadline = now() + (opts.timeoutMs ?? DEFAULT_TIMEOUT_MS);
-  const host = hostname();
+  const host = opts.host?.() ?? hostname();
+  const machineId = machineIdFor(opts);
   const token = `${process.pid}-${now()}-${Math.random().toString(36).slice(2, 10)}`;
 
   // A direct O_EXCL success never visits the reclaim branch, so it must clear an aged marker left
@@ -303,6 +342,7 @@ export async function acquire(lockPath: string, opts: LockOptions = {}): Promise
     token,
     pid: process.pid,
     host,
+    ...(machineId ? { machineId } : {}),
     startedAt: THIS_PROCESS_STARTED_AT,
     heartbeatAt: now(),
     op: opts.op ?? "unspecified",
@@ -369,8 +409,8 @@ export async function acquire(lockPath: string, opts: LockOptions = {}): Promise
       } catch {
         /* vanished between open and stat — loop and retry the O_EXCL create */
       }
-    } else if (holder.host === host) {
-      // Same host — the only domain we adjudicate. A dead PID is the fast path; a frozen
+    } else if (sameMachine(holder, host, machineId)) {
+      // Same machine — the only domain we adjudicate. A dead PID is the fast path; a frozen
       // heartbeat is the backstop for PID reuse, where a recycled PID stays "alive" forever.
       reclaimable = !holderAlive(holder) || now() - holder.heartbeatAt > staleMs;
     }
@@ -417,7 +457,7 @@ export async function acquire(lockPath: string, opts: LockOptions = {}): Promise
             }
           } else {
             stillReclaimable =
-              fresh.host === host &&
+              sameMachine(fresh, host, machineId) &&
               (!holderAlive(fresh) || now() - fresh.heartbeatAt > staleMs);
           }
           if (stillReclaimable) {
@@ -454,7 +494,7 @@ export async function acquire(lockPath: string, opts: LockOptions = {}): Promise
           ? `held by pid ${holder.pid} on ${holder.host} since ${new Date(holder.startedAt).toISOString()} (${holder.op})`
           : "the lock is held by an unidentified process",
         remedy:
-          holder && holder.host !== host
+          holder && !sameMachine(holder, host, machineId)
             ? `Wait for it to finish. Locks held from another host are never reclaimed automatically; if ${holder.host} is truly gone, delete ${lockPath} by hand.`
             : "Wait for it to finish, or re-run once the other operation completes.",
         detail: { lockPath, holder },

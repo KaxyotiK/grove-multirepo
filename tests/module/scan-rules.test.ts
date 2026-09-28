@@ -216,6 +216,7 @@ function destructiveBoundaryViolations(path: string, file: ts.SourceFile, checke
     if (path === "src/git/adapter.ts" && imported === "spawn" && command === "git") return true;
     if (path === "src/git/native-recognition.ts" && imported === "spawnSync" && command === "git") return true;
     if (path === "src/store/lock.ts" && imported === "spawnSync" && command === "ps") return true;
+    if (path === "src/store/lock.ts" && imported === "spawnSync" && command === "/usr/sbin/ioreg") return true;
     if (path === "src/commands/agent.ts" && imported === "spawn" && compact(call.arguments[0]!) === "definition.command") return true;
     return false;
   };
