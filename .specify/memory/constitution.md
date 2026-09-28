@@ -1,6 +1,21 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 6.0.0 -> 6.0.1
+Bump rationale: PATCH - correct the stale supported-platform sentence to match the macOS-only policy already adopted in 4.0.0 and retained in Development Workflow & Quality Gates. No principle, support commitment, or verification obligation changes.
+Lineage: follows 6.0.0, present in public baseline commit 3e84630, and continues the historical VERSION LINEAGE and subsequent amendment reports below. This amendment is 6.0.1; historical version numbers and reports are unchanged.
+Modified principles: none.
+Modified section: Technology & Artifact Constraints, supported platforms.
+Added sections: none.
+Removed sections: none.
+Migration impact: none; no runtime or workspace-schema change.
+Affected documentation: README.md, CONTRIBUTING.md, AGENTS.md, and package.json already specify macOS only and require no platform-policy changes.
+Templates / references requiring follow-up: none; dependent templates read the constitution at runtime.
+Deferred items: none.
+
+Superseded sync impact report follows.
+SYNC IMPACT REPORT
+==================
 Version change: 5.0.1 -> 6.0.0
 Bump rationale: MAJOR - Principle IV replaces the public destructive-consent flag with two
 permission levels and removes the old spelling. This is a backward-incompatible rule change.
@@ -233,7 +248,7 @@ Rationale: A breaking rewrite succeeds only if old ownership machinery cannot qu
 
 The existing lightweight command-line toolchain remains fixed unless this constitution is amended:
 
-- Language: strict TypeScript using ESM. Runtime: Node 24 or newer. Supported platforms: macOS and Linux; Windows is unsupported.
+- Language: strict TypeScript using ESM. Runtime: Node 24 or newer. Supported platform: macOS only.
 - Package manager: npm with a committed lockfile. CLI parsing uses the Node standard library with direct subcommand dispatch; process and hashing behavior use Node standard-library facilities. Tests use Node's built-in test and assertion facilities. Bundling is development/build only.
 - The single shipped artifact is `dist/grove.mjs` with a Node shebang. It MUST run without Bun, TypeScript, `node_modules`, Electron, a display server, a source checkout, or experimental flags. The package MUST contain only the built CLI, package metadata, README, and license.
 - The command surface has two layers: bare verbs act on Groves or the workspace; noun families manage supporting resources. Flags are kebab-case. Machine-readable mode writes only its versioned value to stdout, except a foreground agent run owns the inherited terminal.
@@ -258,4 +273,4 @@ This constitution supersedes other practices and conventions for this repository
 - Every pull request and review MUST record constitution compliance. A change that cannot satisfy the Core Principles and quality gates is rejected or deferred, never merged with an exception.
 - Runtime command and behavior details belong in authoritative specifications and contracts; this constitution governs the invariants those documents MUST honor.
 
-**Version**: 6.0.0 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-09-23
+**Version**: 6.0.1 | **Ratified**: 2026-08-15 | **Last Amended**: 2026-09-28
