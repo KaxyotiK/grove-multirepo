@@ -178,3 +178,7 @@ It remains the stable `§` citation authority and the home of the 180 regression
 
 - Before archive moves a Grove directory, an unobserved Git-marked Tree-position directory must not be treated as loose content merely because repository inspection failed. Archive refuses without a durable operation or filesystem mutation and itemizes the content at risk, explicitly marking any depth, count, or readability limit that prevents complete itemization. An unavailable repository unrelated to that Grove's Tree positions does not block archiving an otherwise fully observed or empty Grove (`V3ALY-01`).
 - `fix --move` refuses a selected set containing two moves to one destination before creating a durable operation, including in dry-run mode; case-only aliases are the same destination on a case-insensitive volume but remain distinct on a case-sensitive volume (`V3ALY-03`).
+
+## Delete observation efficiency
+
+For a clean two-Tree Grove, a direct `grove delete` MUST complete with at most 120 Git invocations. The bound includes preflight, fresh point-of-use observations, work checks, and native removals. The command MUST retain the same Tree work checks at plan and point of use, including tracked, untracked, and ignored entries; the same loose-content inventory and consent comparison; and the same identity and protected-path checks. A lighter point-of-use workspace observation may omit worktree facts that no delete decision reads, while the target-specific work checks remain fresh. Witnesses: `V3DPF-01`, `V3DPF-02`.

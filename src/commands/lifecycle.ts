@@ -689,7 +689,7 @@ async function deleteHandler(ctx: CommandContext): Promise<number> {
         let actual: ChangeEntry[] = [];
         recordPending(operation, `remove-${index}`, { path: recipe.priorPath, headOid: recipe.headOid, branch: recipe.branch });
         try {
-          const mutationSnapshot = await observeWorkspace(requireWorkspace({ cwd: ws.root, workspace: ws.root }), g);
+          const mutationSnapshot = await observeWorkspace(requireWorkspace({ cwd: ws.root, workspace: ws.root }), g, { worktreeFacts: "identity" });
           const mutationRepository = mutationSnapshot.repositories.find((candidate) => candidate.registration?.id === recipe.selector.repositoryId);
           const mutationWorktree = mutationRepository?.worktrees.find((candidate) => candidate.path.utf8 === recipe.priorPath);
           if (!mutationRepository || mutationRepository.problem || mutationRepository.commonGitDir !== recipe.commonGitDir || !mutationWorktree || mutationWorktree.headOid !== recipe.headOid) throw new GroveError({ kind: "refused-conflict", what: `Cannot delete ${grove.name}`, why: "a repository or worktree identity changed at the point of use", remedy: "Retry from fresh observed state." });
@@ -709,7 +709,7 @@ async function deleteHandler(ctx: CommandContext): Promise<number> {
       recordPending(operation, "delete-content", { path: contentPath, present: existsSync(contentPath) });
       if (existsSync(contentPath)) {
         try {
-          const mutationSnapshot = await observeWorkspace(requireWorkspace({ cwd: ws.root, workspace: ws.root }), g);
+          const mutationSnapshot = await observeWorkspace(requireWorkspace({ cwd: ws.root, workspace: ws.root }), g, { worktreeFacts: "identity" });
           assertDestructiveMutationPath(mutationSnapshot, contentPath, { allowObservedPaths: targetPaths, groveName: grove.name });
           // The Trees are gone now, so anything at a Tree path is new content, not an exemption.
           const current = inventoryLooseContent(contentPath, targetPaths, { accountedPresent: "inventory", structuralDirectories: structuralTreeSlotPaths(snapshot.layout, grove.name, snapshot.repositories.flatMap((repository) => repository.registration ? [repository.registration.name] : [])) });

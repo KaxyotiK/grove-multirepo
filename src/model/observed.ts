@@ -308,12 +308,13 @@ async function observeWorktrees(
   git: Git,
   layout: CompiledLayout,
   groveNames: readonly string[],
+  worktreeFacts: "full" | "identity" = "full",
 ): Promise<ObservedWorktree[]> {
   const raw = await git.listWorktreesRaw(commonGitDir);
   const worktrees: ObservedWorktree[] = [];
   for (const entry of raw) {
     let upstream: RefName | null = null, dirty: boolean | null = null, sequencer: { kind: string; path: string } | null = null, ahead: number | null = null, behind: number | null = null;
-    if (entry.path.canonicalUtf8 !== null && !entry.bare && !entry.prunable) {
+    if (worktreeFacts === "full" && entry.path.canonicalUtf8 !== null && !entry.bare && !entry.prunable) {
       const path = entry.path.canonicalUtf8;
       upstream = await git.upstream(path);
       const status = await porcelainStatus(git, path); dirty = status.problem ? null : status.changes.length > 0;
@@ -333,37 +334,38 @@ async function observeWorktrees(
   return worktrees;
 }
 
-export async function observeRepository(ws: LoadedWorkspace, registration: RepositoryEntry, git: Git, layout = compileLayout(ws.root, ws.config.layout), groveNames: readonly string[] = []): Promise<ObservedRepository> {
+export async function observeRepository(ws: LoadedWorkspace, registration: RepositoryEntry, git: Git, layout = compileLayout(ws.root, ws.config.layout), groveNames: readonly string[] = [], worktreeFacts: "full" | "identity" = "full"): Promise<ObservedRepository> {
   const anchorPath = registration.location.kind === "managed" ? expandRepositoryPath(layout, registration.name) : registration.location.commonGitDir;
   const anchor = anchorPath;
   try {
     const identity = await git.inspectRepository(anchor);
     const commonGitDir = identity.commonGitDir.canonicalUtf8 as string;
-    const worktrees = await observeWorktrees(ws, registration, anchorPath, commonGitDir, git, layout, groveNames);
+    const worktrees = await observeWorktrees(ws, registration, anchorPath, commonGitDir, git, layout, groveNames, worktreeFacts);
     return { registration, registrationStatus: "registered", anchorPath, commonGitDir, gitDir: identity.gitDir.canonicalUtf8 as string, identity, worktrees, problem: null };
   } catch (error) {
     return { registration, registrationStatus: "registered", anchorPath, commonGitDir: anchor, gitDir: anchor, identity: null, worktrees: [], problem: String((error as Error).message ?? error) };
   }
 }
 
-async function observeUnregisteredRepository(ws: LoadedWorkspace, anchor: string, git: Git, layout: CompiledLayout): Promise<ObservedRepository> {
+async function observeUnregisteredRepository(ws: LoadedWorkspace, anchor: string, git: Git, layout: CompiledLayout, worktreeFacts: "full" | "identity" = "full"): Promise<ObservedRepository> {
   try {
     const identity = await git.inspectRepository(anchor);
     const commonGitDir = identity.commonGitDir.canonicalUtf8 as string;
-    const worktrees = await observeWorktrees(ws, null, anchor, commonGitDir, git, layout, []);
+    const worktrees = await observeWorktrees(ws, null, anchor, commonGitDir, git, layout, [], worktreeFacts);
     return { registration: null, registrationStatus: "unregistered", anchorPath: commonGitDir, commonGitDir, gitDir: identity.gitDir.canonicalUtf8 as string, identity, worktrees, problem: null };
   } catch (error) {
     return { registration: null, registrationStatus: "unregistered", anchorPath: anchor, commonGitDir: anchor, gitDir: anchor, identity: null, worktrees: [], problem: String((error as Error).message ?? error) };
   }
 }
 
-export async function observeWorkspace(ws: LoadedWorkspace, git: Git): Promise<ObservedWorkspace> {
+/** Identity mode is for point-of-use ownership checks only; callers must check selected work separately. */
+export async function observeWorkspace(ws: LoadedWorkspace, git: Git, options: { worktreeFacts?: "full" | "identity" } = {}): Promise<ObservedWorkspace> {
   const startedAt = new Date().toISOString();
   const layout = compileLayout(ws.root, ws.config.layout);
   const catalog = scanCentralGroveMetadata(ws.root);
   const groveNames = activeGroveNames(layout, catalog);
   const repositories: ObservedRepository[] = [];
-  for (const registration of ws.config.repositories) repositories.push(await observeRepository(ws, registration, git, layout, groveNames));
+  for (const registration of ws.config.repositories) repositories.push(await observeRepository(ws, registration, git, layout, groveNames, options.worktreeFacts));
   const diagnostics: Diagnostic[] = [];
   const indexed = indexRepositoriesByCommonDir(repositories.filter((r) => r.problem === null).map((r) => ({ registration: r.registration, commonGitDir: r.commonGitDir })));
   diagnostics.push(...indexed.diagnostics);
@@ -379,7 +381,7 @@ export async function observeWorkspace(ws: LoadedWorkspace, git: Git): Promise<O
     const identity = await git.inspectRepository(candidate.path).catch(() => null);
     const commonGitDir = identity?.commonGitDir.canonicalUtf8;
     if (!commonGitDir || knownCommonDirs.has(commonGitDir)) continue;
-    const repository = await observeUnregisteredRepository(ws, candidate.path, git, layout);
+    const repository = await observeUnregisteredRepository(ws, candidate.path, git, layout, options.worktreeFacts);
     repositories.push(repository);
     knownCommonDirs.add(commonGitDir);
     diagnostics.push(makeDiagnostic({

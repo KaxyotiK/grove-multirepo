@@ -360,3 +360,12 @@ The final cutover accepts schema 3 only and refuses every foreign schema before 
 2. Refuse archive when Git inspection leaves Tree membership unknown, itemizing Tree-position content before any move. Reject colliding repair destinations before dry-run or operation creation. Compare case-variant owner paths by filesystem identity. Dependency: 1.
 3. Define structural Tree slot paths once in layout code and use them in loose-content inventory at delete plan and point of use, preserving ordinary loose-file protection. Coordinate recovery reuse with its owning lane. Dependency: 1.
 4. Run focused witnesses, then the full local gate once at default concurrency. Record passing witnesses in the traceability ledger; commit and open a PR for independent review. Dependency: 2 and 3.
+
+## Issue #32 delete observation cost
+
+**Authority:** FR-053; `cli-surface-v3.md` §Delete observation efficiency; V3DPF-01–02; constitution IV. **Measured baseline at `6aa08af`:** direct clean deletion of one, two, and four Trees used 73, 186, and 532 Git calls, respectively, with 1.41, 3.12, and 8.71 seconds elapsed on the local machine. Repeated full workspace observations account for the rising status, ignored-file, upstream, and sequencer probes.
+
+1. Record a passive PATH-proxy baseline for one, two, and four Trees and identify repeated argv families. Proof: measurement log outside the repository.
+2. Add V3DPF-01 and V3DPF-02 built-artifact witnesses before production edits. The clean two-Tree count must fail on the baseline; dirty and untracked Tree work and `.grove-cmux/` remain refusal controls.
+3. Use an identity-focused workspace observation only for delete's point-of-use structure and ownership checks. Keep full preflight observation and target-specific work and loose-content checks. Proof: focused witnesses and existing destructive suites.
+4. Re-measure one, two, and four Trees, run the full local gate, and record the passing witness in traceability. Proof: local gate log outside the repository.
