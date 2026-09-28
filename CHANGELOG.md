@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- `reconcile --audit-only` now reports the same pending-operation and lock diagnostics as `doctor`.
+- Interrupted deletion of a Grove without central metadata can resume; after abandonment, an explicit `delete` can remove its unchanged empty scaffold.
+- Lifecycle recovery errors identify the pending operation and the exact `grove reconcile` command.
+- Independent interrupted `repo add` operations can all resume after unrelated workspace config updates; real alias and path conflicts still refuse.
+
 ## 0.1.0
 
 First public release, published to npm as `grove-multirepo`. The command is `grove`. Requires macOS, Node 24 or newer, and Git.
