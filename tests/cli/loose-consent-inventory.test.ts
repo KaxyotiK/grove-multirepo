@@ -51,7 +51,7 @@ function spawnDelete(fixture: LooseGrove, env: Record<string, string>): FaultPro
 
 /** Pause the forced delete immediately before Git removes the Tree, then run `during`. */
 async function pausedDelete(fixture: LooseGrove, during: (command: FaultProcess, gate: GitGate) => Promise<void>): Promise<void> {
-  const gate = createGitGate(["worktree", "remove", "--force", "--", fixture.tree], { timeoutMs: 60_000 });
+  const gate = createGitGate(["worktree", "remove", "--force", "--", fixture.tree]);
   const command = spawnDelete(fixture, gate.env);
   try {
     await waitForGitGate(gate, command);

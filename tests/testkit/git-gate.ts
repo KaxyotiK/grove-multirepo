@@ -4,6 +4,7 @@ import { delimiter, join } from "node:path";
 import type { FaultProcess } from "./git-fault.ts";
 import { installGitProxy } from "./shim.ts";
 import { tempDir } from "./tmp.ts";
+import { BOUNDARY_READY_TIMEOUT_MS } from "./timeouts.ts";
 
 const CONFIG_ENV = "GROVE_TEST_GIT_GATE_CONFIG";
 
@@ -71,7 +72,7 @@ export function createGitGate(exactGitArgs: readonly string[] | readonly (readon
   return {
     sentinelPath,
     releasePath,
-    timeoutMs: options.timeoutMs ?? 5_000,
+    timeoutMs: options.timeoutMs ?? BOUNDARY_READY_TIMEOUT_MS,
     env: { PATH: `${proxyDir}${delimiter}${originalPath}`, [CONFIG_ENV]: configPath },
     release: () => writeFileSync(releasePath, "release\n"),
     dispose: () => rmSync(base, { recursive: true, force: true }),

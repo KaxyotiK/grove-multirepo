@@ -19,6 +19,7 @@ import {
 import { delimiter, join } from "node:path";
 import { installGitProxy, readArgvLog } from "./shim.ts";
 import { tempDir } from "./tmp.ts";
+import { BOUNDARY_READY_TIMEOUT_MS } from "./timeouts.ts";
 
 const CONFIG_ENV = "GROVE_TEST_GIT_FAULT_CONFIG";
 
@@ -125,7 +126,7 @@ process.exit(exitCode);
 
 export function createGitFaultBoundary(options: GitFaultBoundaryOptions): GitFaultBoundary {
   if (options.exactGitArgs.length === 0) throw new Error("A Git fault boundary needs exact argv");
-  const timeoutMs = options.timeoutMs ?? 5_000;
+  const timeoutMs = options.timeoutMs ?? BOUNDARY_READY_TIMEOUT_MS;
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new Error("Git fault timeout must be positive");
 
   const base = tempDir("git-fault");

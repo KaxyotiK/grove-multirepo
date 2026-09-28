@@ -189,7 +189,7 @@ for (const [label, relativePath] of [["description", "description"], ["nested ex
     execFileSync("git", ["init", "-q", "--bare", "--initial-branch=main", origin]);
     const anchor = join(fx.root, "repos", "alpha");
     const trunk = join(fx.root, "trunks", "main@alpha");
-    const gate = createGitGate(["remote", "add", "--", "origin", origin], { timeoutMs: 15_000 });
+    const gate = createGitGate(["remote", "add", "--", "origin", origin]);
     const command = spawnFaultProcess(process.execPath, [CLI, "--json", "repo", "add", origin, "--name", "alpha", "--trunk", "main"], {
       cwd: fx.root, env: { ...process.env, HOME: fx.home, GROVE_ROOT: "/ignored", ...gate.env },
     });
@@ -229,7 +229,7 @@ async function crashedAcquisitionBoundary(boundaryKind: "initialize-bare" | "con
   const args = boundaryKind === "initialize-bare"
     ? ["init", "--bare", "--initial-branch=main", "--", anchor]
     : ["remote", "add", "--", "origin", origin];
-  const boundary = createGitFaultBoundary({ exactGitArgs: args, sentinelTiming: "after", timeoutMs: 15_000 });
+  const boundary = createGitFaultBoundary({ exactGitArgs: args, sentinelTiming: "after" });
   const command = spawnFaultProcess(process.execPath, [CLI, "repo", "add", origin, "--name", "alpha", "--trunk", "main"], {
     cwd: fx.root, env: { ...process.env, HOME: fx.home, GROVE_ROOT: "/ignored", ...boundary.env },
   });

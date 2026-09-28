@@ -79,7 +79,7 @@ test("V3ACQ-02: a relative local path that does not exist is refused as invalid-
 test("V3ACQ-02: an interrupted add of a relative path resumes from another directory against the resolved path", async () => {
   const { fx, origin } = initialized();
   // A generous wait: the gate itself is the proof point, and a loaded host must not time it out.
-  const gate = createGitGate(["fetch", "--prune", "--", "origin", "+refs/heads/*:refs/remotes/origin/*"], { timeoutMs: 60_000 });
+  const gate = createGitGate(["fetch", "--prune", "--", "origin", "+refs/heads/*:refs/remotes/origin/*"]);
   const command = spawnFaultProcess(process.execPath, [CLI, "repo", "add", relative(fx.root, origin), "--name", "alpha"], {
     cwd: fx.root, env: { ...process.env, HOME: fx.home, GROVE_ROOT: "/ignored", ...gate.env },
   });

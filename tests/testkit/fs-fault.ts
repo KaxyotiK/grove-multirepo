@@ -3,6 +3,7 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync }
 import { join } from "node:path";
 import type { FaultProcess } from "./git-fault.ts";
 import { tempDir } from "./tmp.ts";
+import { BOUNDARY_READY_TIMEOUT_MS } from "./timeouts.ts";
 
 const CONFIG_ENV = "GROVE_TEST_FS_FAULT_CONFIG";
 
@@ -40,7 +41,7 @@ fs.renameSync = function (from, to) {
 syncBuiltinESMExports();
 `;
 
-export function createFsFaultBoundary(targetPath: string, timeoutMs = 5_000): FsFaultBoundary {
+export function createFsFaultBoundary(targetPath: string, timeoutMs = BOUNDARY_READY_TIMEOUT_MS): FsFaultBoundary {
   const base = tempDir("fs-fault");
   const preloadPath = join(base, "preload.mjs");
   const configPath = join(base, "config.json");

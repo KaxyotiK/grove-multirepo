@@ -58,7 +58,7 @@ function operationRecord(fixture: TwoTreeGrove, kind: string): any {
 
 /** Run a forced command paused at beta's `worktree remove`; `during` acts, then the run continues. */
 async function pausedAtBeta(fixture: TwoTreeGrove, args: string[], during: () => void): Promise<{ status: number | null; stdout: string }> {
-  const gate = createGitGate(removeBeta(fixture), { timeoutMs: 60_000 });
+  const gate = createGitGate(removeBeta(fixture));
   const command = spawnFaultProcess(process.execPath, [CLI, "--json", ...args], { cwd: fixture.fx.root, env: { ...process.env, HOME: fixture.fx.home, GROVE_ROOT: "/ignored", ...gate.env } });
   try {
     await waitForGitGate(gate, command);
@@ -70,7 +70,7 @@ async function pausedAtBeta(fixture: TwoTreeGrove, args: string[], during: () =>
 }
 
 async function interruptAtBeta(fixture: TwoTreeGrove, args: string[]): Promise<void> {
-  const gate = createGitGate(removeBeta(fixture), { timeoutMs: 60_000 });
+  const gate = createGitGate(removeBeta(fixture));
   const command = spawnFaultProcess(process.execPath, [CLI, "--json", ...args], { cwd: fixture.fx.root, env: { ...process.env, HOME: fixture.fx.home, GROVE_ROOT: "/ignored", ...gate.env } });
   try { await waitForGitGate(gate, command); await killAndReapFaultProcess(command); }
   finally { gate.release(); if (processGroupAlive(command.child.pid!)) await killAndReapFaultProcess(command); gate.dispose(); }
@@ -79,7 +79,7 @@ async function interruptAtBeta(fixture: TwoTreeGrove, args: string[]): Promise<v
 for (const [command, args] of [["delete", ["delete", "g", "--allow-destructive-all"]], ["archive", ["archive", "g", "--allow-destructive-all", "--allow-unpushed"]]] as const) {
   test(`V3DES-11: a direct ${command} that fails at the second Tree reports the first Tree's discarded files`, () => {
     const fixture = twoTreeGrove();
-    const gate = createGitGate(removeBeta(fixture), { failExitCode: 1, timeoutMs: 60_000 });
+    const gate = createGitGate(removeBeta(fixture), { failExitCode: 1 });
     let run;
     try { run = fixture.fx.grove(["--json", ...args], { env: gate.env }); } finally { gate.dispose(); }
     const result = json(run.stdout);
@@ -116,7 +116,7 @@ for (const [command, args] of [["delete", ["delete", "g", "--allow-destructive-a
 
 test("V3DES-11: the human partial result names the completed Tree's discarded files", () => {
   const fixture = twoTreeGrove();
-  const gate = createGitGate(removeBeta(fixture), { failExitCode: 1, timeoutMs: 60_000 });
+  const gate = createGitGate(removeBeta(fixture), { failExitCode: 1 });
   let run;
   try { run = fixture.fx.grove(["delete", "g", "--allow-destructive-all"], { env: gate.env }); } finally { gate.dispose(); }
   assert.equal(run.status, 6, `${run.stdout}\n${run.stderr}`);
@@ -125,7 +125,7 @@ test("V3DES-11: the human partial result names the completed Tree's discarded fi
 
 test("V3DES-11: a direct delete that fails after removing loose content reports every completed removal", async () => {
   const fixture = twoTreeGrove();
-  const gate = createGitGate(removeBeta(fixture), { timeoutMs: 60_000 });
+  const gate = createGitGate(removeBeta(fixture));
   const command = spawnFaultProcess(process.execPath, [CLI, "--json", "delete", "g", "--allow-destructive-all"], { cwd: fixture.fx.root, env: { ...process.env, HOME: fixture.fx.home, GROVE_ROOT: "/ignored", ...gate.env } });
   let closed: { code: number | null } = { code: null };
   try {
@@ -228,7 +228,7 @@ test("V3DES-11: a file that vanishes before its Tree is removed is not in that T
   const fixture = twoTreeGrove();
   // Beta's point-of-use check runs after alpha's removal. Delete a consented beta file while the
   // run is paused at alpha's removal: it is in the recorded consent but was never discarded.
-  const gate = createGitGate(["worktree", "remove", "--force", "--", fixture.alpha], { timeoutMs: 60_000 });
+  const gate = createGitGate(["worktree", "remove", "--force", "--", fixture.alpha]);
   const command = spawnFaultProcess(process.execPath, [CLI, "--json", "delete", "g", "--allow-destructive-all"], { cwd: fixture.fx.root, env: { ...process.env, HOME: fixture.fx.home, GROVE_ROOT: "/ignored", ...gate.env } });
   let status: number | null = null;
   try {
