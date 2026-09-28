@@ -252,10 +252,34 @@ export function recordStepFailure(record: OperationRecord, stepId: string, class
   update(record);
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isStringRecord(value: unknown): value is Record<string, string> {
+  return isRecord(value) && Object.values(value).every((entry) => typeof entry === "string");
+}
+
+const operationStates = new Set<OperationState>(["planned", "running", "recoverable", "conflicted", "completed", "abandoned", "interrupted-observation"]);
+const stepClassifications = new Set<StepClassification>(["planned", "pending", "completed", "recoverable-intermediate", "conflicted"]);
+
+function isOperationStep(value: unknown): value is OperationStep {
+  if (!isRecord(value) || typeof value.id !== "string" || typeof value.kind !== "string" || !isRecord(value.input) || !isStringRecord(value.selector) || !stepClassifications.has(value.classification as StepClassification)) return false;
+  return value.error === undefined || (isRecord(value.error) && typeof value.error.reason === "string");
+}
+
+function isOperationStepPlan(value: unknown): value is OperationStepPlan {
+  return isRecord(value) && typeof value.id === "string" && typeof value.kind === "string" && isRecord(value.input);
+}
+
+function isOperationTargetPlan(value: unknown): value is OperationTargetPlan {
+  return isRecord(value) && isStringRecord(value.selector) && Array.isArray(value.steps) && value.steps.every(isOperationStepPlan);
+}
+
 export function loadOperation(file: string): OperationRecord {
   let raw: unknown;
   try { raw = JSON.parse(readFileSync(file, "utf8")); } catch (error) { throw new GroveError({ kind: "config", what: `Cannot load operation record ${file}`, why: String((error as Error).message ?? error), remedy: "Inspect the restrictive local record before recovery." }); }
-  if (typeof raw !== "object" || raw === null || (raw as { version?: unknown }).version !== 1 || typeof (raw as { id?: unknown }).id !== "string" || !Array.isArray((raw as { steps?: unknown }).steps)) throw new GroveError({ kind: "config", what: `Invalid operation record ${file}`, why: "the versioned shape is incomplete", remedy: "Inspect the record before recovery." });
+  if (!isRecord(raw) || raw.version !== 1 || typeof raw.id !== "string" || typeof raw.kind !== "string" || !isStringRecord(raw.scope) || !operationStates.has(raw.state as OperationState) || typeof raw.createdAt !== "string" || typeof raw.updatedAt !== "string" || !Array.isArray(raw.targetLocks) || !raw.targetLocks.every((lock) => typeof lock === "string") || !Array.isArray(raw.targets) || !raw.targets.every(isOperationTargetPlan) || !Array.isArray(raw.steps) || !raw.steps.every(isOperationStep)) throw new GroveError({ kind: "config", what: `Invalid operation record ${file}`, why: "the versioned shape is incomplete or contains invalid fields", remedy: "Inspect the record before recovery." });
   return { ...(raw as Omit<OperationRecord, "file">), file };
 }
 

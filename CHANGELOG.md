@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Malformed operation records are reported by `file ls` and `file read` without crashing; recoverable repository anchors remain protected.
 - `reconcile --audit-only` now reports the same pending-operation and lock diagnostics as `doctor`.
 - Interrupted deletion of a Grove without central metadata can resume; after abandonment, an explicit `delete` can remove its identity-matched empty scaffold or re-plan current loose content under the usual consent flags.
 - Lifecycle recovery errors identify the pending operation and the exact `grove reconcile` command.

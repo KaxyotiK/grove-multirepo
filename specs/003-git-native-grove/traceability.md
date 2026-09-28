@@ -69,6 +69,7 @@ Every task in [tasks.md](tasks.md) cites one or more stable rows below. Requirem
 | TRACE-PARTIAL-RECEIPT | FR-023A, FR-024, Contract V3DES-11, V3DES-12, V3DES-13, V3OPS-08, Constitution IV, V | T-PARTIAL-1-T-PARTIAL-5 | `tests/cli/partial-receipt-v3.test.ts`; `reviews/partial-receipt-ledger.md` |
 | TRACE-RELATIVE-REPO-PATH | FR-011A-E, FR-018A-C, Contract V3ACQ-02, V3SEC-05, V3SEC-07 | issue #22 | `tests/cli/relative-repo-path-v3.test.ts`; `reviews/relative-repo-path-ledger.md` |
 | TRACE-DELETE-PERF | FR-053, Contract V3DPF-01, V3DPF-02, Constitution IV | T-DPF-1–4 | `tests/cli/delete-performance.test.ts` (passing Git-call bound, dirty-work refusal, and loose-content refusal); baseline and after measurements kept outside the repository |
+| TRACE-OP-RECORD-SHAPE | Contract V3FSF-01 | issue #23 | `tests/cli/regressions.test.ts`; malformed operation steps are reported by file readers and excluded from recovery resume |
 
 ## Command disposition inventory
 
