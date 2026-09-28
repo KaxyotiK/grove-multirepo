@@ -1,12 +1,19 @@
 # AGENTS.md
 
-This repo is spec-driven with [Spec Kit](https://github.com/github/spec-kit). The spec is authority; code follows it.
+Grove is spec-driven with [Spec Kit](https://github.com/github/spec-kit): the specification is the authority, and code follows it. The principles that govern every change are in the constitution (`.specify/memory/constitution.md`).
 
-- **Principles & governance:** `.specify/memory/constitution.md`
-- **Current behaviour spec:** `specs/003-git-native-grove/` — `spec.md` and `contracts/`. This is where the Git-native revision is specified and where new behaviour is written.
-- **Stable citation authority:** `specs/001-grove-cli/contracts/` — start at its `README.md`. `§N` citations and the 180 regression scenario IDs resolve there; **never renumber sections**. It is closed to new behaviour: `003` supersedes it wherever the two disagree, and sections describing deleted subsystems carry a **Superseded** note. A citation into one fails `tests/module/citations.test.ts`.
-- **Changing behaviour:** `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-analyze` → `/speckit-implement`. Cite the contracts, never restate them.
-- **Task checkboxes in `tasks.md` are not evidence.** They drifted from reality in both `001` and `002`. What is done is recorded in the ledger `Status` column with a green witness; `/speckit-analyze` must not read them.
-- **Verify:** `npm run typecheck && npm test && npm run scan && npm run traceability`
-- **Out of scope until stated otherwise:** CI, GitHub Actions, and any platform but macOS. Verification is local (constitution 4.0.0). Do not raise it as a gap.
-- **Requests outside the current plan** go to a GitHub issue (`gh issue create`), not into the work.
+## To find out how Grove should behave
+
+Read the current contracts in `specs/003-git-native-grove/contracts/`. Where they are silent, the original contracts in `specs/001-grove-cli/contracts/` still apply; where the two disagree, the current contracts win. `specs/README.md` explains the directory numbering and history if you need it.
+
+## To change behaviour
+
+1. Run `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-analyze` → `/speckit-implement`.
+2. Write the new rule into the current contracts and add an acceptance scenario with a new ID. Never add behaviour to the original contracts.
+3. Write a test whose title cites the scenario ID, and see it fail before you change the code.
+4. Cite contract sections (`§N`) and scenario IDs instead of restating rules. Never renumber a section or reuse an ID: tests, help text, and the traceability ledger refer to them, and `npm run traceability` and the citation test fail on a broken reference.
+5. Count work as done only when a passing test witnesses it in the ledger. A checked box in a `tasks.md` is not evidence, and `/speckit-analyze` must not read the boxes.
+
+## To verify a change
+
+Run `npm run typecheck && npm test && npm run scan && npm run traceability`. Verification is local and on macOS only: there is no CI, no GitHub Actions, and no other platform until stated otherwise, so do not raise their absence as a gap.
