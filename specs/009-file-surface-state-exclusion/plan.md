@@ -71,7 +71,7 @@ tests/cli/review.test.ts
 
 **Structure Decision**: Keep the guard in `src/commands/files.ts`, the only consumer. `resolveContained` is shared with Tree configuration and other callers whose scopes can never contain `.grove`, so widening it would change their contract for no benefit.
 
-## Amendment (2026-09-23, PR #15 review)
+## Amendment (2026-09-23, independent review)
 
 **Summary.** `repo add` refuses a remote URL with userinfo before anything runs (`V3SEC-05`), and the file surface refuses every repository Git directory Grove knows with the same device/inode ancestor walk as `.grove` (`V3SEC-06`). See the spec's amendment section and research R6–R10.
 
@@ -99,7 +99,7 @@ No violations or exceptions.
 
 The direct `repo add` credential check remains unconditional. Git's locally resolved destination is checked before each managed network call using the current process environment; only exact `GROVE_ALLOW_GIT_CONFIG_CREDENTIALS=1` permits credentials introduced through Git configuration. The switch and resolved URL never enter workspace records. Recovery repeats resolution and the environment check. Failed command/argument and `repo link` errors redact credentialed argv values through every human and JSON field. Existing linked-repository fetch policy and ordinary plain SSH output remain unchanged.
 
-New CLI witnesses in `credential-opt-in-v3.test.ts` and `credential-argv-v3.test.ts` were red on add1273 and on the accepted #9 merge before product edits. They cover acquisition, later fetch and sync, interrupted-add recovery, all env values, direct URL refusal, output/record secrecy, and malformed-argv and link errors. The required full suite, scan, traceability, package, and isolated install are the completion gate.
+New CLI witnesses in `credential-opt-in-v3.test.ts` and `credential-argv-v3.test.ts` were red on add1273 and on the accepted contained-path merge before product edits. They cover acquisition, later fetch and sync, interrupted-add recovery, all env values, direct URL refusal, output/record secrecy, and malformed-argv and link errors. The required full suite, scan, traceability, package, and isolated install are the completion gate.
 
 ## Recheck-between-network-calls review amendment (2026-09-24)
 

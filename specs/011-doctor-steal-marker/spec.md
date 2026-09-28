@@ -12,8 +12,6 @@
 
 **Authority**: §6 and §8.4; `specs/003-git-native-grove/contracts/` `cli-surface-v3.md`, `json-results-v1.md`, and `acceptance-scenarios-v3.md`.
 
-**Issue**: #10 in the private development tracker
-
 ## Why this feature exists
 
 Lock reclamation creates an exclusive `<lock>.steal` intent marker and normally removes it when the reclaim attempt finishes. An uncatchable process termination can leave that marker behind. Lock acquisition bounds contention on the marker while reclaiming a stale lock, but previously left an aged marker untouched when it acquired a missing lock directly. The read-only command intended to explain workspace health also filtered every marker out. A user could therefore see a permanent diagnostic after a successful mutation, or a misleading retry remedy while a fresh marker still blocked stale-lock reclaim.

@@ -24,7 +24,7 @@ Extend the existing read-only lock scan with a distinct aged-marker finding and 
 
 **Performance Goals**: One directory read and at most one `stat` per lock-directory entry; no wait or mutation in the audit
 
-**Constraints**: Read-only audit; stable diagnostic identity; exact agreement with the existing marker-reclaim threshold; direct-create cleanup after lock ownership; no issue-17 race changes; no v2 contract edits; no changes outside the assigned lock/doctor/test/v3 contract/spec scope
+**Constraints**: Read-only audit; stable diagnostic identity; exact agreement with the existing marker-reclaim threshold; direct-create cleanup after lock ownership; no changes to lock-steal race handling; no v2 contract edits; no changes outside the assigned lock/doctor/test/v3 contract/spec scope
 
 **Scale/Scope**: One lock-directory scan, one finding variant with associated-lock state plus an optional stale-lock fact, one new diagnostic code, one direct-create cleanup, and one acceptance scenario
 

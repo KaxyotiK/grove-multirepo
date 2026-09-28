@@ -2,7 +2,7 @@
 
 **Authority:** constitution 6.0.0 Principles IV–V; FR-024; CLI and JSON result contracts; V3OPS-07. **Frozen predecessor:** `885253fd1c86d7e605447446603b93056aec3f5e`.
 
-The issue is a durable-state dead end: after an interrupted fetch and loss of the remote, `reconcile --operation` records `recoverable-intermediate` / `git-failed`, while `reconcile --abandon` refuses the record solely because its state is `recoverable`.
+The defect is a durable-state dead end: after an interrupted fetch and loss of the remote, `reconcile --operation` records `recoverable-intermediate` / `git-failed`, while `reconcile --abandon` refuses the record solely because its state is `recoverable`.
 
 | Requirement | Status | Witness |
 | --- | --- | --- |

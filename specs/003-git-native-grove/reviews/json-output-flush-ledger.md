@@ -1,6 +1,6 @@
 # Piped output delivered in full: evidence ledger
 
-**Authority:** constitution 6.0.0 Principle III; FR-033A; `json-results-v1.md`; V3OUT-04. **Source finding:** review-27 round 3, P2-2. **Base:** `6b21d171dcba862af933c0bb31a1744f56457fe9`.
+**Authority:** constitution 6.0.0 Principle III; FR-033A; `json-results-v1.md`; V3OUT-04. **Source finding:** abandonment review round 3, P2-2. **Base:** `6b21d171dcba862af933c0bb31a1744f56457fe9`.
 
 At the base, `src/cli.ts` called `process.exit()` as soon as the command returned. On macOS, Node writes to a pipe asynchronously, so any output larger than the 64 KiB pipe buffer was cut at 65,536 bytes for a piped consumer. The command's exit code was unchanged, so a consumer saw exit 0 with invalid JSON. Redirecting to a file hid the defect because file writes are synchronous. The defect affected every command, human and `--json` output, and stderr.
 

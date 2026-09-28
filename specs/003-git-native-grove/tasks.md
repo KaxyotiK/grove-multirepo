@@ -18,7 +18,7 @@ Completion evidence is in `reviews/loose-consent-inventory-ledger.md`; checkboxe
 - [ ] T-LOOSE-2 Record, compare, and itemize a bounded recursive per-path loose inventory on the direct and resumed delete paths — depends on T-LOOSE-1; FR-023, FR-023A, TRACE-LOOSE-CONSENT; proof: V3DES-09 and V3DES-10 green.
 - [ ] T-LOOSE-3 Full local gate, isolated packed install and installed reproduction — depends on T-LOOSE-2; TRACE-LOOSE-CONSENT; proof: gate totals and reproduction output in the ledger.
 
-## Piped output delivered in full (review-27 round 3 P2-2)
+## Piped output delivered in full (abandonment review round 3, P2-2)
 
 Completion evidence is in `reviews/json-output-flush-ledger.md`; checkboxes are not evidence.
 
@@ -28,7 +28,7 @@ Completion evidence is in `reviews/json-output-flush-ledger.md`; checkboxes are 
 
 ## Recoverable acquisition abandonment
 
-Completion evidence belongs in the branch's recovery report; task checkboxes are not evidence.
+Completion evidence belongs in `reviews/repo-add-abandon-ledger.md`; task checkboxes are not evidence.
 
 - [ ] T-ABN-1 Add a real interrupted fetch and removed-remote behavioral red witness for V3OPS-07 on frozen `885253f`, plus owned/replaced/modified anchors, successful artifacts, and ineligible controls — FR-024; proof: focused CLI test showing intended old refusal.
 - [ ] T-ABN-2 Update FR-024 and active CLI/JSON/scenario contracts for scoped explicit abandonment and preservation — depends on T-ABN-1; proof: read-only cross-artifact analysis.
@@ -36,10 +36,10 @@ Completion evidence belongs in the branch's recovery report; task checkboxes are
 - [ ] T-ABN-4 Verify full local gate and isolated packed global install — depends on T-ABN-3; proof: full prescribed npm command, pack, isolated install and installed version.
 - [ ] T-ABN-5 Reproduce independent scaffold-deletion and omitted-nested-artifact findings with behavioral reds on frozen `4fa9bf2` — FR-024/V3OPS-07; depends on T-ABN-4; proof: six scaffold red cases and a nested-hook red case in the branch's ignored evidence logs.
 - [ ] T-ABN-6 Require content-sensitive, default-template acquisition proof as well as recorded filesystem identity and native Git emptiness before deletion; fail closed for changed, unreadable, custom-template, or proof-free anchors and report nested retained content — FR-024/V3OPS-07; depends on T-ABN-5; proof: focused CLI green including custom layout.
-- [ ] T-ABN-7 Repeat full local gate and isolated installed package proof, then freeze a new commit for independent review — depends on T-ABN-6; proof: exact command output and review disposition in the recovery report.
+- [ ] T-ABN-7 Repeat full local gate and isolated installed package proof, then freeze a new commit for independent review — depends on T-ABN-6; proof: exact command output and review disposition in `reviews/repo-add-abandon-ledger.md`.
 - [ ] T-ABN-8 Capture late-snapshot content-loss reds on frozen `68dc579` while remote add is paused — FR-024/V3OPS-07; depends on T-ABN-7; proof: two deleted user files in the ignored round-three red log.
 - [ ] T-ABN-9 Establish genesis at Grove-created anchor initialization and validate only the exact remote-add transition in both direct and resumed execution; retain missing or changed proof, and cover post-init/post-remote-add crash windows — FR-024/V3OPS-07; depends on T-ABN-8; proof: focused CLI green with previous regressions.
-- [ ] T-ABN-10 Run full local gate and isolated installed package proof, freeze a clean commit, then request fresh independent review — depends on T-ABN-9; proof: exact logs and review disposition in report-27-round3.md.
+- [ ] T-ABN-10 Run full local gate and isolated installed package proof, freeze a clean commit, then request fresh independent review — depends on T-ABN-9; proof: exact logs and review disposition in `reviews/repo-add-abandon-ledger.md`.
 
 ## Repository-slot ownership correction
 

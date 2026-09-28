@@ -1,6 +1,6 @@
 # Feature Specification: Exclude Grove state from the file surface
 
-> **Amended 2026-09-23 (PR #15 review).** The feature also refuses credentialed remotes in `repo add` (`V3SEC-05`) and excludes repository Git directories from the file surface (`V3SEC-06`). See [Amendment: credentialed remotes and repository stores](#amendment-credentialed-remotes-and-repository-stores).
+> **Amended 2026-09-23 (independent review).** The feature also refuses credentialed remotes in `repo add` (`V3SEC-05`) and excludes repository Git directories from the file surface (`V3SEC-06`). See [Amendment: credentialed remotes and repository stores](#amendment-credentialed-remotes-and-repository-stores).
 
 **Feature Branch**: `release/grove-multirepo`
 
@@ -12,11 +12,9 @@
 
 **Input**: User description: "Exclude Grove's internal state directory from the file surface. At workspace scope, `file ls` and `file read` refuse any path that resolves into the workspace's `.grove/` directory, and `file ls` of the workspace root omits the `.grove` entry."
 
-**Amendment input** (repository owner, PR #15 review): "`repo add` runs `git remote add` in the managed bare repository, so Git stores the exact URL, token included, in `repos/<repo>/config`, and `grove file read repos/<repo>/config` prints it. Grove does not support credentials embedded in remote URLs: refuse them in `repo add` before any mutation, and exclude the repository store from the file surface as insurance against a token added later by hand."
+**Amendment input** (repository owner, independent review): "`repo add` runs `git remote add` in the managed bare repository, so Git stores the exact URL, token included, in `repos/<repo>/config`, and `grove file read repos/<repo>/config` prints it. Grove does not support credentials embedded in remote URLs: refuse them in `repo add` before any mutation, and exclude the repository store from the file surface as insurance against a token added later by hand."
 
 **Authority**: §8.7 and §11 FILE-01, FILE-02, FILE-05; `specs/003-git-native-grove/contracts/` `cli-surface-v3.md` and `json-results-v1.md` (remote redaction; retained remote on a resumable record).
-
-**Issue**: #11 in the private development tracker
 
 ## Why this feature exists
 
@@ -107,7 +105,7 @@ Reads scoped with `--grove` or `--grove --tree` behave exactly as before, includ
 
 ### Why the amendment exists
 
-`V3SEC-04` closed one route to a retained remote. An independent review of PR #15 found a second, permanent one: `repo add` configures `origin` with `git remote add -- origin <remote>`, so Git keeps the exact URL in the managed repository's own config. With a remote such as `http://user:SECRET123@127.0.0.1:<port>/ledger.git`, `grove file read repos/ledger/config` printed the token long after the operation finished. Redaction cannot reach a file Git owns.
+`V3SEC-04` closed one route to a retained remote. An independent review found a second, permanent one: `repo add` configures `origin` with `git remote add -- origin <remote>`, so Git keeps the exact URL in the managed repository's own config. With a remote such as `http://user:SECRET123@127.0.0.1:<port>/ledger.git`, `grove file read repos/ledger/config` printed the token long after the operation finished. Redaction cannot reach a file Git owns.
 
 The repository owner decided that Grove does not support credentials in URLs passed directly to `repo add`. The supported ways to add a repository are SSH (`git@github.com:org/repo.git`) or HTTPS without credentials plus a Git credential helper (the macOS Keychain helper, or `gh auth setup-git`); a token in the typed URL is the pattern Git and GitHub warn against. Credentials supplied only through the user's Git configuration require the per-invocation opt-in described below. The file-surface exclusion is kept as insurance against a credential added by hand afterwards (`git remote set-url` inside the store).
 

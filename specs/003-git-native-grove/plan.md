@@ -18,7 +18,7 @@
 2. Inventory loose content recursively per path with its type, without following symlinks or descending into nested Git metadata, bounded, and refusing when incomplete. Record it in the `directory-remove` step, compare it on both paths before removal, and itemize receipts per path. Read a name-only record as consent for those exact paths only. Dependency: 1. Proof: the same file and `tests/module/loose-inventory.test.ts` green.
 3. Full local gate, isolated packed install, and the saved reproduction against the installed binary. Dependency: 2. Proof: `reviews/loose-consent-inventory-ledger.md`.
 
-## Piped output delivered in full (review-27 round 3 P2-2)
+## Piped output delivered in full (abandonment review round 3, P2-2)
 
 **Authority:** constitution 6.0.0 Principle III; FR-033A; JSON results contract; V3OUT-04. **Observed baseline:** at `6b21d17`, `src/cli.ts` exits as soon as the command returns. Pipe writes are asynchronous on macOS, so any stdout or stderr output larger than the 64 KiB pipe buffer reaches a piped consumer truncated at 65,536 bytes, still with the command's exit code.
 

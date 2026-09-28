@@ -42,7 +42,7 @@
 - [x] T012 Run `npm run typecheck && npm test && npm run scan && npm run traceability`, then `npm pack`, install the tarball under an isolated `--prefix`, and run the installed `grove --version` (constitution: bundled build and clean isolated install)
 - [x] T013 Record the commit and the `V3SEC-04` witness (`specs/009-file-surface-state-exclusion/spec.md` Status → Implemented)
 
-## Phase 6: Amendment — credentialed remotes and repository stores (2026-09-23, PR #15 review)
+## Phase 6: Amendment — credentialed remotes and repository stores (2026-09-23, independent review)
 
 **Independent Test**: `V3SEC-05` and `V3SEC-06` green; `V3SEC-04`, FILE-01/02/05 unchanged.
 
