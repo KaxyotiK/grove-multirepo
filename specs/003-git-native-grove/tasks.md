@@ -375,7 +375,7 @@ This phase closes the PR review's demonstrated output-conformance bug without ad
 
 - [x] T-ALY-1 Record FR-029A/FR-036A and V3ALY-01..04 contracts, then add built-artifact behavior tests and capture their red baseline — TRACE-ARCHIVE-LAYOUT.
 - [x] T-ALY-2 Fix archive refusal/itemization, duplicate fix destinations, case-sensitive slot ownership, and structural empty-slot inventory while preserving wrapper projection files — TRACE-ARCHIVE-LAYOUT; depends on T-ALY-1.
-- [ ] T-ALY-3 Verify focused suites and the exact full local gate, merge recovery before delivery, and record passing test evidence — TRACE-ARCHIVE-LAYOUT; depends on T-ALY-2.
+- [x] T-ALY-3 Verify focused suites and the exact full local gate, merge recovery before delivery, and record passing test evidence — TRACE-ARCHIVE-LAYOUT; depends on T-ALY-2.
 
 ## Phase 14: Interrupted-operation recovery correction
 

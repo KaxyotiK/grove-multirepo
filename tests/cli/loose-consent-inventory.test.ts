@@ -175,8 +175,8 @@ test("V3DES-10: a pre-fix record naming only a loose directory gives no consent 
   assert.equal(fixture.fx.grove(["--json", "reconcile", "--abandon", id]).status, 0);
   const deleted = fixture.fx.grove(["--json", "delete", "g", "--allow-destructive-all"]);
   assert.equal(deleted.status, 0, `${deleted.stderr}\n${deleted.stdout}`);
-  // The Tree was removed before the refusal, so its empty `trees/` container is loose content now.
-  assert.deepEqual(json(deleted.stdout).targets[0].after.discardedLoose, ["NOTES.md", "notes/", "notes/old.txt", "trees/"]);
+  // The Tree was removed before the refusal; its empty structural slot needs no loose-content consent.
+  assert.deepEqual(json(deleted.stdout).targets[0].after.discardedLoose, ["NOTES.md", "notes/", "notes/old.txt"]);
   assert.equal(existsSync(fixture.groveDir), false);
 });
 
