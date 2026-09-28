@@ -16,4 +16,4 @@ Grove manages Git worktrees and can delete or move files on your behalf, and it 
 
 - Grove deleting, moving or overwriting content without recorded consent.
 - Credentials from a remote URL or Git configuration appearing in Grove output, error messages or files under `.grove/`.
-- Grove reading or writing outside the workspace it was pointed at.
+- Unauthorized filesystem access beyond the workspace and explicitly registered repositories.

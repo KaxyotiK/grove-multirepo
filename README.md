@@ -101,7 +101,7 @@ This separate, single-repository example includes an optional coding-agent workf
 - A **workspace** is a directory holding `.grove/` for configuration and Grove records, plus the layout roots below.
 - A **repository** is registered one of two ways. A **managed** repository comes from `repo add`: a bare common Git repository plus real peer **trunk** worktrees. A **linked** repository comes from `repo link`: an existing Git repository elsewhere, registered without any Git mutation.
 - A **trunk** is a managed peer worktree for a long-running branch such as `main`.
-- A **Grove** is a named unit of work. A **Tree** is one repository's worktree inside a Grove, so a Grove spanning three repositories has three Trees.
+- A **Grove** is a named unit of work. A **Tree** is a Git worktree inside a Grove. `grove new` creates one Tree per selected repository by default; additional Trees can use explicit names and branches.
 
 Git tracks the branches and worktrees. Grove records repository registration, layout preferences, and the information needed to restore archived Groves.
 
@@ -114,7 +114,7 @@ Git tracks the branches and worktrees. Grove records repository registration, la
 | Tree creation | supported | supported |
 | `repo remove` | unregisters; Git data retained | unregisters; Git data retained |
 
-Default layout. Each path is a template under `layout` in `.grove/config.json`:
+Default layout. The repository, trunk, Grove, Tree, and archive paths are configurable under `layout` in `.grove/config.json`; `.grove/` and its internal paths are fixed:
 
 ```text
 <workspace>/
@@ -124,12 +124,12 @@ Default layout. Each path is a template under `layout` in `.grove/config.json`:
     operations/
     groves/                         # advisory metadata and archive recipes
   repos/<repo>/                     # managed bare common repositories
-  trunks/<branch-slug>@<repo-slug>/ # a checkout of each long-running branch, e.g. main@api
-  groves/<grove>/trees/<tree>/      # one worktree per repository in each Grove, e.g. checkout-v2@api
+  trunks/<branch-slug>@<repo-slug>/  # a checkout of each long-running branch, e.g. main@api
+  groves/<grove>/trees/<tree>/       # by default, one Tree per selected repository, e.g. checkout-v2@api
   archives/<grove>/                 # present only while that Grove is archived
 ```
 
-To put Groves somewhere else, change the templates before creating any; Grove refuses a layout change that would leave existing Groves outside it:
+Choose your layout before creating worktrees. Template changes do not move existing worktrees; `doctor` reports worktrees outside their configured paths as misplaced. Some changes are refused while existing content depends on the old paths. For example, to put new Groves under `work/`:
 
 ```bash
 grove config set --values '{"layout":{"groves":"work/{grove}","trees":"work/{grove}/{tree}"}}'
@@ -151,16 +151,16 @@ flowchart TB
 
 Use `trunk add` for additional long-running branches in managed repositories. Removing a Tree or trunk keeps its branch; `repo remove` unregisters a repository without deleting its Git data.
 
-Prefer `repo add`. Grove then keeps its own bare repository and trunks inside the workspace, and nothing it does affects your other checkouts.
+Prefer `repo add` for a separate managed clone inside the workspace, with its own bare repository and trunks.
 
-Use `repo link` only when you want Trees from a repository you already have checked out elsewhere. Grove registers it without moving or cloning it, and never creates or manages its trunks, so your checkout keeps its own branches:
+Use `repo link` to reuse an existing repository without cloning or moving it. The path may name a checkout, a subdirectory, a linked worktree, or a bare repository. Linked Trees share that repository's Git objects and branch refs while keeping separate working directories. Grove does not create or manage trunks for linked repositories:
 
 ```bash
 grove repo link ../existing-checkout --name existing
 grove new local-work --repo existing
 ```
 
-New Trees start from the branch the checkout had checked out when you linked it. If that was a feature branch, pass `--base main` to `repo link` (or later `grove repo configure existing --base main`) to start from `main` instead; this creates no trunk and checks nothing out. Each Tree is a worktree of that repository on its own branch, so your checkout cannot switch to a branch a Tree has checked out, as with any Git worktree.
+When you link an attached checkout, new Trees start from the branch it had checked out when you linked it. If that was a feature branch, pass `--base main` to `repo link` (or later `grove repo configure existing --base main`) to start from `main` instead; this creates no trunk and checks nothing out. Each Tree is a worktree of that repository on its own branch, so your checkout cannot switch to a branch a Tree has checked out, as with any Git worktree.
 
 ## Behavior and safety
 
@@ -196,7 +196,7 @@ Add repositories with an SSH URL, or an HTTPS URL plus a Git credential helper (
 
 Add `--json` for one stable result value on stdout. Machine results include all selected targets, diagnostics, partial outcomes, and classified exit codes.
 
-Schema-1 and schema-2 ownership workspaces are refused with a self-identifying version-skew error. Grove v3 does not interpret or migrate their ownership state; use the matching older Grove version for those workspaces. Bare repositories and attached worktrees remain ordinary Git topology and may be registered explicitly in a schema-3 workspace.
+Grove 0.1.0 uses workspace schema 3. It refuses legacy schema-1 and schema-2 workspaces and does not migrate them. Their underlying repositories and worktrees remain ordinary Git data and can be registered explicitly in a new schema-3 workspace.
 
 ## Development
 
