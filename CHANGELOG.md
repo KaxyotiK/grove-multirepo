@@ -7,7 +7,7 @@
 - `fix --move` refuses colliding destinations before any move or operation record, and repairs case-variant owner slots on case-sensitive volumes.
 - Workspace locks use the Mac's hardware UUID when available, so a hostname change does not block recovery of this Mac's crashed lock. Existing 0.1.0 lock records and Macs where the UUID cannot be read retain hostname-based behavior.
 - Malformed operation records are reported by `file ls` and `file read` without crashing; recoverable repository anchors remain protected.
-- `reconcile --audit-only` now reports the same pending-operation and lock diagnostics as `doctor`.
+- `reconcile --audit-only` now reports the same pending-operation and lock diagnostics as `doctor`, and observes workspace locks without reclaiming them.
 - Interrupted deletion of a Grove without central metadata can resume; after abandonment, an explicit `delete` can remove its identity-matched empty scaffold or re-plan current loose content under the usual consent flags.
 - Lifecycle recovery errors identify the pending operation and the exact `grove reconcile` command.
 - Independent interrupted `repo add` operations can all resume after unrelated workspace config updates; real alias and path conflicts still refuse.
@@ -16,7 +16,6 @@
 ## Unreleased
 
 - Interrupted deletion now resumes through empty grouped Tree slots left by native moves and `fix --move`, including Groves created with `new --all`; files inside those slots remain protected by exact destructive consent.
-- `reconcile --audit-only` now observes workspace locks without reclaiming them, matching `doctor` for dead same-machine, legacy, and foreign-machine holders.
 
 ## 0.1.0
 
