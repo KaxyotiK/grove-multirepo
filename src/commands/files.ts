@@ -117,13 +117,12 @@ export function isGitDirectory(path: string): boolean {
  * covered: the file surface is not a secret scanner. Identities are taken with `stat`, so a store
  * reached through a symlink is still recognised; missing paths are skipped.
  */
-function repositoryStores(snapshot: ObservedWorkspace): RepositoryStore[] {
+function repositoryStores(snapshot: ObservedWorkspace, operations: ReturnType<typeof scanOperations>): RepositoryStore[] {
   const candidates: Array<{ path: string; repository: string | null }> = [];
   for (const repository of snapshot.repositories) {
     const name = repository.registration?.name ?? null;
     candidates.push({ path: repository.anchorPath, repository: name }, { path: repository.commonGitDir, repository: name });
   }
-  const operations = scanOperations(snapshot.workspace.root);
   for (const record of operations.records) {
     if (record.kind !== "repo-add") continue;
     const input = record.steps.find((step) => step.kind === "repository-init-bare")?.input as { anchor?: unknown } | undefined;
@@ -178,21 +177,22 @@ function refuseRepositoryStore(stores: readonly RepositoryStore[], resolved: str
   }
 }
 
-async function scopeRoot(ctx: CommandContext, groveRef?: string, treeRef?: string): Promise<{ root: string; workspaceRoot: string; stores: RepositoryStore[]; selector: ResultSelector; diagnostics: Diagnostic[] }> {
+async function scopeRoot(ctx: CommandContext, groveRef?: string, treeRef?: string): Promise<{ root: string; workspaceRoot: string; stores: RepositoryStore[]; selector: ResultSelector; diagnostics: Diagnostic[]; operationErrors: ReturnType<typeof scanOperations>["errors"] }> {
   const ws = requireWorkspace({ cwd: ctx.cwd, workspace: ctx.globals.workspace });
   const snapshot = await observeWorkspace(ws, new Git(createGitRunner()));
-  const stores = repositoryStores(snapshot);
+  const operations = scanOperations(snapshot.workspace.root);
+  const stores = repositoryStores(snapshot, operations);
   if (!groveRef) {
     if (treeRef) throw new GroveError({ kind: "invalid-input", what: "--tree requires --grove", why: "a Tree is selected within a Grove", remedy: "Pass --grove <grove> --tree <tree>." });
-    return { root: ws.root, workspaceRoot: ws.root, stores, selector: { path: ws.root }, diagnostics: snapshot.diagnostics };
+    return { root: ws.root, workspaceRoot: ws.root, stores, selector: { path: ws.root }, diagnostics: snapshot.diagnostics, operationErrors: operations.errors };
   }
   const grove = snapshot.groves.find((candidate) => candidate.name === groveRef || candidate.metadata?.manifest.id === groveRef);
   if (!grove) throw new GroveError({ kind: "invalid-input", what: `No Grove "${groveRef}"`, why: "no observed or advisory Grove matches", remedy: "Run `grove ls`." });
-  if (!treeRef) return { root: expandGrovePath(snapshot.layout, grove.name), workspaceRoot: ws.root, stores, selector: { grove: grove.name }, diagnostics: snapshot.diagnostics };
+  if (!treeRef) return { root: expandGrovePath(snapshot.layout, grove.name), workspaceRoot: ws.root, stores, selector: { grove: grove.name }, diagnostics: snapshot.diagnostics, operationErrors: operations.errors };
   const trees = grove.trees.filter((tree) => tree.treeName === treeRef || tree.selector?.tree === treeRef || `${tree.selector?.repositoryId}/${tree.treeName}` === treeRef);
   if (trees.length !== 1 || trees[0]?.path.utf8 === null) throw new GroveError({ kind: "invalid-input", what: `No addressable Tree "${treeRef}"`, why: trees.length === 0 ? "the selector matches no observed Tree" : "the selector is ambiguous or has a non-UTF-8 path", remedy: "Run `grove tree ls`." });
   const tree = trees[0]!;
-  return { root: tree.path.utf8 as string, workspaceRoot: ws.root, stores, selector: { repositoryId: tree.selector?.repositoryId, grove: grove.name, tree: tree.treeName ?? undefined, path: tree.path.utf8 as string }, diagnostics: snapshot.diagnostics };
+  return { root: tree.path.utf8 as string, workspaceRoot: ws.root, stores, selector: { repositoryId: tree.selector?.repositoryId, grove: grove.name, tree: tree.treeName ?? undefined, path: tree.path.utf8 as string }, diagnostics: snapshot.diagnostics, operationErrors: operations.errors };
 }
 
 async function lsHandler(ctx: CommandContext): Promise<number> {
@@ -214,7 +214,7 @@ async function lsHandler(ctx: CommandContext): Promise<number> {
   // Filenames are untrusted, repo-borne data: escape control/bidi bytes so a crafted name cannot
   // inject terminal escape sequences into the human-mode listing. The --json name stays verbatim.
   const after = { path: rel, entries };
-  const result = completeResult("file ls", [{ selector: scope.selector, before: null, action: "list", after, reason: null }], scope.diagnostics, after);
+  const result = completeResult("file ls", [{ selector: scope.selector, before: null, action: "list", after, reason: null }], scope.diagnostics, { ...after, operationErrors: scope.operationErrors });
   return ctx.emit.result(result, commandResultExit(result));
 }
 
@@ -262,7 +262,7 @@ async function readHandler(ctx: CommandContext): Promise<number> {
   }
   const content = raw.toString("utf8");
   const after = { path, content };
-  const result = completeResult("file read", [{ selector: scope.selector, before: null, action: "read", after, reason: null }], scope.diagnostics, after);
+  const result = completeResult("file read", [{ selector: scope.selector, before: null, action: "read", after, reason: null }], scope.diagnostics, { ...after, operationErrors: scope.operationErrors });
   return ctx.emit.result(result, commandResultExit(result));
 }
 

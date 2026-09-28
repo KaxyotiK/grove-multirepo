@@ -146,14 +146,30 @@ test("a corrupt central Grove record does not hide healthy native Groves", () =>
   assert.ok(reconciled.diagnostics.some((diagnostic: { code: string }) => diagnostic.code.includes("metadata")));
 });
 
-test("a corrupt forward-operation record is reported without crashing reconcile", () => {
+test("V3FSF-01: malformed operation steps are reported without crashing file, doctor, or recovery readers", () => {
   const { fx } = setup();
   const operations = join(fx.root, ".grove", "operations");
   mkdirSync(operations, { recursive: true });
-  writeFileSync(join(operations, "broken.json"), "GARBAGE");
+  const anchor = join(fx.root, "recoverable-store");
+  execFileSync("git", ["init", "--bare", anchor]);
+  writeFileSync(join(operations, "X.json"), JSON.stringify({ version: 1, id: "X", kind: "repo-add", scope: {}, state: "planned", createdAt: "2026-09-28T00:00:00.000Z", updatedAt: "2026-09-28T00:00:00.000Z", targetLocks: [], targets: [], anchor, steps: [null] }));
+  writeFileSync(join(fx.root, "safe.txt"), "safe\n");
+  const listed = fx.grove(["--json", "file", "ls", "."]);
+  assert.equal(listed.status, 0, listed.stderr);
+  const listing = json(listed.stdout);
+  assert.ok(listing.detail.operationErrors.some((entry: { file: string }) => entry.file.endsWith("X.json")));
+  assert.equal(listing.detail.entries.some((entry: { name: string }) => entry.name === "recoverable-store"), false);
+  const protectedRead = fx.grove(["--json", "file", "read", "recoverable-store/config"]);
+  assert.equal(protectedRead.status, 2, protectedRead.stdout);
+  assert.notEqual(json(protectedRead.stdout).error.kind, "internal");
+  const read = fx.grove(["--json", "file", "read", "safe.txt"]);
+  assert.equal(read.status, 0, read.stderr);
+  assert.ok(json(read.stdout).detail.operationErrors.some((entry: { file: string }) => entry.file.endsWith("X.json")));
+  const doctor = fx.grove(["--json", "doctor"]);
+  assert.notEqual(doctor.status, 1, doctor.stderr);
   const run = fx.grove(["--json", "reconcile"]);
   assert.notEqual(run.status, 1);
-  assert.ok(json(run.stdout).detail.operationErrors.some((entry: { file: string }) => entry.file.endsWith("broken.json")));
+  assert.ok(json(run.stdout).detail.operationErrors.some((entry: { file: string }) => entry.file.endsWith("X.json")));
 });
 
 test("JSON agent run keeps stdout pure even when the child writes to stdout", () => {
