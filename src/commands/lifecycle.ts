@@ -257,13 +257,15 @@ async function archiveHandler(ctx: CommandContext): Promise<number> {
       // contains none. Itemize everything the directory move could carry, without treating the
       // filesystem positions as proof of Git membership or following symlinks.
       const atRisk: string[] = [];
+      const incomplete: Array<{ path: string; problem: string }> = [];
       const walk = (directory: string, depth: number): void => {
-        if (depth > 64 || atRisk.length >= 10_000) return;
+        if (depth > 64) { incomplete.push({ path: relative(ws.root, directory), problem: "deeper than 64 levels" }); return; }
+        if (atRisk.length >= 10_000) { incomplete.push({ path: relative(ws.root, directory), problem: "more than 10000 entries" }); return; }
         let entries: Dirent<string>[];
         try { entries = readdirSync(directory, { withFileTypes: true }); }
-        catch { atRisk.push(`${relative(snapshot.layout.workspaceRoot, directory)}/ (unreadable)`); return; }
+        catch { incomplete.push({ path: relative(ws.root, directory), problem: "cannot enumerate" }); return; }
         for (const entry of entries) {
-          if (atRisk.length >= 10_000) break;
+          if (atRisk.length >= 10_000) { incomplete.push({ path: relative(ws.root, join(directory, entry.name)), problem: "more than 10000 entries" }); break; }
           if (entry.name === ".git") continue;
           const path = join(directory, entry.name);
           atRisk.push(relative(snapshot.layout.workspaceRoot, path));
@@ -271,7 +273,10 @@ async function archiveHandler(ctx: CommandContext): Promise<number> {
         }
       };
       if (existsSync(activePath)) walk(activePath, 0);
-      throw new GroveError({ kind: "refused-precondition", what: `Cannot archive "${grove.name}"`, why: `repository inspection failed and Git-marked Tree positions cannot be accounted for: ${unobservedTreePaths.map((path) => relative(ws.root, path)).join(", ")}; content at risk: ${atRisk.join(", ") || "unknown"}`, remedy: "Restore access to the listed repositories, run `grove doctor`, then retry archive.", detail: { repositories: unavailable.map((repository) => ({ repositoryId: repository.registration!.id, repositoryAlias: repository.registration!.name, problem: repository.problem })), unobservedTreePaths, atRisk } });
+      const sample = atRisk.slice(0, 10).join(", ") || "unknown";
+      const omitted = atRisk.length > 10 ? ` (+${atRisk.length - 10} more listed in detail)` : "";
+      const gap = incomplete.length ? `; itemization incomplete at ${incomplete.length} path(s)` : "";
+      throw new GroveError({ kind: "refused-precondition", what: `Cannot archive "${grove.name}"`, why: `repository inspection failed and Git-marked Tree positions cannot be accounted for: ${unobservedTreePaths.map((path) => relative(ws.root, path)).join(", ")}; content at risk: ${sample}${omitted}${gap}`, remedy: "Restore access to the listed repositories, run `grove doctor`, then retry archive.", detail: { repositories: unavailable.map((repository) => ({ repositoryId: repository.registration!.id, repositoryAlias: repository.registration!.name, problem: repository.problem })), unobservedTreePaths, atRisk, incomplete } });
     }
     await refuseUnsafe(g, snapshot, grove.trees, destructiveConsent(parsed.values));
     await refuseUndurable(g, snapshot, grove.trees, parsed.values["allow-unpushed"] === true);

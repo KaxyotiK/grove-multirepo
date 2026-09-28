@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+import { existsSync, lstatSync, mkdirSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
 import { GroveError } from "../errors.ts";
 import { Git, createGitRunner } from "../git/adapter.ts";
 import { assertWorktreeMutationPath, observeWorkspace } from "../model/observed.ts";
@@ -16,6 +16,24 @@ import { resolveLayoutTarget } from "../config/layout.ts";
 const subject = (diagnostic: Diagnostic): Record<string, unknown> => typeof diagnostic.subject === "object" && diagnostic.subject !== null ? diagnostic.subject as Record<string, unknown> : {};
 const mutationFailureReason = (error: unknown): "stale-plan" | "git-failed" => GroveError.is(error) && error.kind !== "git" ? "stale-plan" : "git-failed";
 
+const caseInsensitiveDestination = (destination: string, workspaceRoot: string): boolean => {
+  let directory = dirname(destination);
+  while (directory === workspaceRoot || directory.startsWith(`${workspaceRoot}/`)) {
+    const name = basename(directory);
+    const alternate = name.replace(/[A-Za-z]/, (letter) => letter === letter.toLowerCase() ? letter.toUpperCase() : letter.toLowerCase());
+    if (alternate !== name) {
+      try {
+        const original = lstatSync(directory);
+        const variant = lstatSync(join(dirname(directory), alternate));
+        return original.dev === variant.dev && original.ino === variant.ino;
+      } catch { /* Use the next existing ancestor within the workspace. */ }
+    }
+    if (directory === workspaceRoot) break;
+    directory = dirname(directory);
+  }
+  return false;
+};
+
 async function fixHandler(ctx: CommandContext): Promise<number> {
   const parsed = parseCommand(ctx);
   if (!parsed.values.move) throw new GroveError({ kind: "invalid-input", what: "fix requires an explicit repair mode", why: "no --move was supplied", remedy: "Preview with `grove fix --move --dry-run`." });
@@ -31,8 +49,9 @@ async function fixHandler(ctx: CommandContext): Promise<number> {
   if (plans.length === 0) throw new GroveError({ kind: "refused-precondition", what: "No safe worktree moves are available", why: "the current filters match no uniquely planned misplaced diagnostic", remedy: "Run `grove doctor` or adjust the filters." });
   const destinations = new Set<string>();
   for (const plan of plans) {
-    if (destinations.has(plan.to)) throw new GroveError({ kind: "refused-conflict", what: `Cannot move two worktrees to ${plan.to}`, why: "selected repairs have the same destination", remedy: "Choose one current diagnostic with --diagnostic, or move one worktree with Git and rescan." });
-    destinations.add(plan.to);
+    const key = caseInsensitiveDestination(plan.to, ws.root) ? plan.to.toLowerCase() : plan.to;
+    if (destinations.has(key)) throw new GroveError({ kind: "refused-conflict", what: `Cannot move two worktrees to ${plan.to}`, why: "selected repairs have the same destination", remedy: "Choose one current diagnostic with --diagnostic, or move one worktree with Git and rescan." });
+    destinations.add(key);
   }
   for (const plan of plans) if (existsSync(plan.to)) throw new GroveError({ kind: "refused-conflict", what: `Cannot move worktree to ${plan.to}`, why: "the exact destination is occupied", remedy: "Move the conflicting path and rerun doctor." });
   const previewTargets = plans.map((plan) => ({ selector: { path: plan.from, ...(subject(diagnostics.find((diagnostic) => diagnostic.id === plan.diagnosticId) as Diagnostic).grove ? { grove: String(subject(diagnostics.find((diagnostic) => diagnostic.id === plan.diagnosticId) as Diagnostic).grove) } : {}) }, before: { path: plan.from, diagnosticId: plan.diagnosticId }, action: "move-worktree", after: { path: plan.to }, reason: null }));

@@ -59,6 +59,20 @@ test("V3ALY-01: an unrelated unavailable repository does not block archive of fu
   assert.equal(existsSync(join(fx.root, "archives", "empty")), true);
 });
 
+test("V3ALY-01: bounded archive itemization reports a depth gap", () => {
+  const fx = makeFixture();
+  success(fx.grove(["--json", "init"]));
+  success(fx.grove(["--json", "repo", "add", fx.repos[0]!.origin, "--name", "alpha"]));
+  success(fx.grove(["--json", "new", "demo", "--repo", "alpha"]));
+  let nested = join(fx.root, "groves", "demo", "trees", "demo@alpha");
+  for (let depth = 0; depth < 66; depth++) { nested = join(nested, "d"); mkdirSync(nested); }
+  writeFileSync(join(nested, "at-risk.txt"), "keep me\n");
+  const run = fx.grove(["--json", "archive", "demo"], { env: { GIT_CONFIG_COUNT: "1", GIT_CONFIG_KEY_0: "url.http://X@h/", GIT_CONFIG_VALUE_0: "x" } });
+  assert.equal(run.status, 5, run.stdout);
+  assert.ok(json(run.stdout).error.detail.incomplete?.some((gap: any) => /deeper than/.test(gap.problem)), run.stdout);
+  assert.equal(readFileSync(join(nested, "at-risk.txt"), "utf8"), "keep me\n");
+});
+
 test("V3ALY-02: empty repository Tree slots do not require destructive consent, but files in them do", () => {
   const fx = grouped();
   success(fx.grove(["--json", "new", "demo", "--all"]));
@@ -128,6 +142,36 @@ test("V3ALY-03: colliding fix destinations refuse before a plan or Git move", ()
     const run = fx.grove(args);
     assert.ok(run.status !== 0, run.stdout);
     assert.match(run.stdout, /same destination|collision|duplicate/i);
+    assert.equal(existsSync(join(first, ".git")), true);
+    assert.equal(existsSync(join(second, ".git")), true);
+    assert.deepEqual(operations(fx.root), records);
+  }
+});
+
+test("V3ALY-03: case-only destinations follow the volume's path identity", () => {
+  const fx = grouped({ alpha: [], beta: [], gamma: [] });
+  success(fx.grove(["--json", "new", "demo", "--repo", "alpha"]));
+  success(fx.grove(["--json", "tree", "add", "demo", "alpha", "--name", "second", "--branch", "second", "--from", "main"]));
+  const store = join(fx.root, "repos", "alpha");
+  const root = join(fx.root, "groves", "demo", "trees");
+  const caseInsensitive = existsSync(join(root, "Alpha"));
+  const first = join(root, "beta", "Shared");
+  const second = join(root, "gamma", "shared");
+  mkdirSync(join(root, "beta"), { recursive: true });
+  mkdirSync(join(root, "gamma"), { recursive: true });
+  execFileSync("git", ["worktree", "move", "--", join(root, "alpha", "demo@alpha"), first], { cwd: store });
+  execFileSync("git", ["worktree", "move", "--", join(root, "alpha", "second"), second], { cwd: store });
+  const records = operations(fx.root);
+  if (!caseInsensitive) {
+    success(fx.grove(["--json", "fix", "--move", "--dry-run"]));
+    success(fx.grove(["--json", "fix", "--move"]));
+    assert.equal(existsSync(join(root, "alpha", "Shared", ".git")), true);
+    assert.equal(existsSync(join(root, "alpha", "shared", ".git")), true);
+    return;
+  }
+  for (const args of [["--json", "fix", "--move", "--dry-run"], ["--json", "fix", "--move"]]) {
+    const run = fx.grove(args);
+    assert.ok(run.status !== 0, run.stdout);
     assert.equal(existsSync(join(first, ".git")), true);
     assert.equal(existsSync(join(second, ".git")), true);
     assert.deepEqual(operations(fx.root), records);
