@@ -31,6 +31,10 @@ test("V3ALY-01: archive refuses uninspectable repository and itemizes Tree conte
   const offline = `${store}.offline`;
   const before = execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: store, encoding: "utf8" });
   const records = operations(fx.root);
+  const malformed = fx.grove(["--json", "archive", "demo", "--allow-destructive-all", "--allow-unpushed"], { env: { GIT_CONFIG_COUNT: "1", GIT_CONFIG_KEY_0: "url.http://X@h/", GIT_CONFIG_VALUE_0: "x" } });
+  assert.equal(malformed.status, 5, malformed.stdout);
+  assert.match(malformed.stdout, /at-risk\.txt/);
+  assert.deepEqual(operations(fx.root), records);
   renameSync(store, offline);
   const run = fx.grove(["--json", "archive", "demo", "--allow-destructive-all", "--allow-unpushed"]);
   const result = json(run.stdout);
