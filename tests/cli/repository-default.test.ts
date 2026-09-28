@@ -42,7 +42,7 @@ test("REPO-24/REPO-26: link accepts an absent advisory trunk while add requires 
   const invalidLinked = cloneLinked(fx.repos[0]!.origin, "main");
   assert.equal(fx.grove(["new", "empty", "--all"]).status, 0);
   const before = snapshot(linked);
-  const link = fx.grove(["--json", "repo", "link", linked, "--name", "linked", "--trunk", "future"]);
+  const link = fx.grove(["--json", "repo", "link", linked, "--name", "linked", "--base", "future"]);
   const defaultDependent = fx.grove(["tree", "add", "empty", "linked"]);
   // ASSERT:REPO-24:CONFIGURATION-REMAINS-VALID
   assert.deepEqual(
@@ -50,7 +50,7 @@ test("REPO-24/REPO-26: link accepts an absent advisory trunk while add requires 
     { linkStatus: 0, preferredTrunk: "future", gitSnapshot: before, defaultDependentStatus: 5 },
   );
   assert.match(defaultDependent.stderr + defaultDependent.stdout, /future|missing|revision/i);
-  const badLink = fx.grove(["repo", "link", invalidLinked, "--name", "bad-link", "--trunk", "bad..branch"]);
+  const badLink = fx.grove(["repo", "link", invalidLinked, "--name", "bad-link", "--base", "bad..branch"]);
   const add = fx.grove(["repo", "add", fx.repos[0]!.origin, "--name", "bad-add", "--trunk", "future"]);
   // ASSERT:REPO-26:BOTH-INVALID-OVERRIDES-EXIT-2-WITHOUT-REGISTRATION-SUCCESS
   assert.deepEqual(
@@ -69,7 +69,7 @@ test("TREE-24: linked Tree creation may adopt an existing branch without creatin
   const linked = cloneLinked(fx.repos[0]!.origin, "main");
   git(linked, ["branch", "side", "main"]);
   assert.equal(fx.grove(["new", "empty", "--all"]).status, 0);
-  assert.equal(fx.grove(["repo", "link", linked, "--name", "local", "--trunk", "main"]).status, 0);
+  assert.equal(fx.grove(["repo", "link", linked, "--name", "local", "--base", "main"]).status, 0);
   const beforeRefs = git(linked, ["for-each-ref", "--format=%(refname)%00%(objectname)"]);
   const added = fx.grove(["tree", "add", "empty", "local", "--branch", "side"]);
   // ASSERT:TREE-24:BOTH-SUCCEED-BECAUSE-NO-BRANCH-IS-CREATED-FROM
@@ -82,7 +82,7 @@ test("REPO-27/003-git-native-grove-SC-004: an explicitly selected non-origin rem
   const linked = cloneLinked(fx.repos[0]!.origin, "main");
   git(linked, ["remote", "add", "upstream", fx.repos[1]!.origin]);
   assert.equal(fx.grove(["new", "empty", "--all"]).status, 0);
-  assert.equal(fx.grove(["repo", "link", linked, "--name", "linked", "--trunk", "develop"]).status, 0);
+  assert.equal(fx.grove(["repo", "link", linked, "--name", "linked", "--base", "develop"]).status, 0);
   const configured = fx.grove(["repo", "configure", "linked", "--remote", "upstream"]);
   const fetched = fx.grove(["repo", "fetch", "linked"]);
   const tree = fx.grove(["tree", "add", "empty", "linked", "--branch", "tree-only"]);
@@ -107,7 +107,7 @@ test("REPO-22/REPO-23: repo configure validates local-only advisory options and 
   assert.equal(fx.grove(["repo", "configure", "linked", "--remote", "missing"]).status, 2);
   assert.equal(readFileSync(configPath, "utf8"), beforeConfig);
   assert.equal(snapshot(linked), beforeGit);
-  const configured = fx.grove(["--json", "repo", "configure", "linked", "--no-remote", "--trunk", "future"]);
+  const configured = fx.grove(["--json", "repo", "configure", "linked", "--no-remote", "--base", "future"]);
   assert.equal(configured.status, 0, `${configured.stderr}\n${configured.stdout}`);
   assert.equal(json(configured.stdout).detail.preferredRemote, null);
   // ASSERT:REPO-22:THE-OVERRIDE-RESOLVES

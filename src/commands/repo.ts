@@ -289,7 +289,7 @@ async function linkRepository(ctx: CommandContext, target: string, nameOverride?
     const remoteHead = await g.tryRun(commonGitDir, ["symbolic-ref", "--short", `refs/remotes/${preferredRemote}/HEAD`]);
     if (remoteHead.exitCode === 0 && remoteHead.stdout.trim()) trunk = remoteHead.stdout.trim().replace(new RegExp(`^${preferredRemote}/`), "");
   }
-  if (!trunk) throw new GroveError({ kind: "refused-precondition", what: "Cannot infer the preferred trunk", why: "the input is detached/bare without an unambiguous symbolic HEAD", remedy: "Pass --trunk <branch>." });
+  if (!trunk) throw new GroveError({ kind: "refused-precondition", what: "Cannot infer the preferred trunk", why: "the input is detached/bare without an unambiguous symbolic HEAD", remedy: "Pass --base <branch>." });
   const valid = await g.tryRun(commonGitDir, ["check-ref-format", "--branch", trunk]);
   if (valid.exitCode !== 0) throw new GroveError({ kind: "invalid-input", what: `Invalid trunk "${trunk}"`, why: valid.stderr.trim().split("\n")[0] ?? "Git rejected it", remedy: "Choose a Git-valid branch name." });
   const targetLocks = [`repository-alias:${name.toLowerCase()}`, `common-dir:${commonGitDir}`];
@@ -356,7 +356,7 @@ async function linkHandler(ctx: CommandContext): Promise<number> {
       detail: { path: safePath === path ? target : safePath },
     });
   }
-  return linkRepository(ctx, target, parsed.values.name, parsed.values.trunk);
+  return linkRepository(ctx, target, parsed.values.name, parsed.values.base);
 }
 
 async function lsHandler(ctx: CommandContext): Promise<number> {
@@ -464,14 +464,14 @@ async function configureHandler(ctx: CommandContext): Promise<number> {
   const parsed = parseCommand(ctx);
   const ref = parsed.positionals[0];
   if (!ref) throw new GroveError({ kind: "invalid-input", what: "repo configure requires <repo>", why: "no repository given", remedy: "Pass a repository id or alias." });
-  const changes = [parsed.values.remote !== undefined, parsed.values["no-remote"], parsed.values.trunk !== undefined].filter(Boolean).length;
-  if (changes === 0) throw new GroveError({ kind: "invalid-input", what: "repo configure requires a change", why: "no preferred remote or trunk option was supplied", remedy: "Pass --remote, --no-remote, or --trunk." });
+  const changes = [parsed.values.remote !== undefined, parsed.values["no-remote"], parsed.values.base !== undefined].filter(Boolean).length;
+  if (changes === 0) throw new GroveError({ kind: "invalid-input", what: "repo configure requires a change", why: "no preferred remote or base option was supplied", remedy: "Pass --remote, --no-remote, or --base." });
   if (parsed.values.remote !== undefined && parsed.values["no-remote"]) throw new GroveError({ kind: "invalid-input", what: "Conflicting preferred-remote options", why: "--remote and --no-remote are mutually exclusive", remedy: "Choose one remote policy." });
   const ws = requireWorkspace({ cwd: ctx.cwd, workspace: ctx.globals.workspace });
   const matches = ws.config.repositories.filter((repository) => repository.id === ref || repository.name === ref);
   if (matches.length !== 1) throw new GroveError({ kind: "invalid-input", what: `No unique repository "${ref}"`, why: `${matches.length} registrations match`, remedy: "Run `grove repo ls`." });
   const repository = matches[0]!;
-  if (parsed.values.trunk !== undefined) assertBranchName(parsed.values.trunk);
+  if (parsed.values.base !== undefined) assertBranchName(parsed.values.base);
   const g = git();
   const layout = compileLayout(ws.root, ws.config.layout);
   const anchor = repository.location.kind === "managed" ? expandRepositoryPath(layout, repository.name) : repository.location.commonGitDir;
@@ -486,7 +486,7 @@ async function configureHandler(ctx: CommandContext): Promise<number> {
   const updated: RepositoryEntry = {
     ...repository,
     remote: parsed.values["no-remote"] ? null : parsed.values.remote ?? repository.remote,
-    trunk: parsed.values.trunk ?? repository.trunk,
+    trunk: parsed.values.base ?? repository.trunk,
   };
   const meta = await saveWorkspace(ws, { ...ws.config, repositories: ws.config.repositories.map((candidate) => candidate.id === repository.id ? updated : candidate) });
   const after = { repositoryId: repository.id, repositoryAlias: repository.name, preferredRemote: updated.remote, preferredTrunk: updated.trunk, commonGitDir, revision: meta.rev };
@@ -515,16 +515,16 @@ export function registerRepo(): void {
   register({
     path: "repo link",
     summary: "Register an existing Git common repository without mutation.",
-    usage: "repo link <path> [--name <name>] [--trunk <branch>]",
+    usage: "repo link <path> [--name <name>] [--base <branch>]",
     args: [
       { name: "<path>", desc: "Any path Git resolves to an existing repository (root, subdirectory, worktree, or bare)." },
       { name: "--name <name>", desc: "Override the derived repository name." },
-      { name: "--trunk <branch>", desc: "Advisory preferred base for future Trees; no ref or worktree is created." },
+      { name: "--base <branch>", desc: "Branch new Trees start from (default: the checked-out branch); creates no trunk." },
     ],
-    note: "Registers the canonical Git common directory without moving, cloning, switching, or creating refs/worktrees. The preferred trunk is advisory; linked repositories refuse every Grove trunk mutation. Use `repo add` when managed peer trunks are required.",
+    note: "Registers the canonical Git common directory without moving, cloning, switching, or creating refs/worktrees. The base is advisory; linked repositories refuse every Grove trunk mutation. Use `repo add` when managed peer trunks are required.",
     examples: [
       "grove repo link ~/src/api                              # register existing checkout as repo \"api\"",
-      "grove repo link ~/src/api --name api --trunk develop   # override name and default trunk branch",
+      "grove repo link ~/src/api --name api --base develop    # override name; new Trees start from develop",
     ],
     handler: linkHandler,
     mutates: true,
@@ -532,15 +532,15 @@ export function registerRepo(): void {
   register({
     path: "repo configure",
     summary: "Update advisory repository policy without changing Git.",
-    usage: "repo configure <repo> [--remote <name>] [--no-remote] [--trunk <branch>]",
+    usage: "repo configure <repo> [--remote <name>] [--no-remote] [--base <branch>]",
     args: [
       { name: "<repo>", desc: "Repository id or alias to configure." },
       { name: "--remote <name>", desc: "Select an existing Git remote by name." },
       { name: "--no-remote", desc: "Clear the preferred remote without removing it from Git." },
-      { name: "--trunk <branch>", desc: "Set the advisory preferred trunk branch." },
+      { name: "--base <branch>", desc: "Set the branch new Trees start from; creates no trunk." },
     ],
     note: "Changes workspace preferences only. It never creates, moves, switches, fetches, or deletes refs or worktrees.",
-    examples: ["grove repo configure api --remote upstream --trunk develop", "grove repo configure local --no-remote"],
+    examples: ["grove repo configure api --remote upstream --base develop", "grove repo configure local --no-remote"],
     handler: configureHandler,
     mutates: true,
   });

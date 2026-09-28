@@ -73,7 +73,7 @@ test("schema-3 tree and trunk add use exact native creation grammar", () => {
 test("schema-3 repo link anchors any Git-resolvable path by canonical common directory", () => {
   const fx = makeFixture();
   assert.equal(fx.grove(["init"]).status, 0);
-  const linked = fx.grove(["--json", "repo", "link", fx.repos[0]!.origin, "--name", "alpha", "--trunk", "main"]);
+  const linked = fx.grove(["--json", "repo", "link", fx.repos[0]!.origin, "--name", "alpha", "--base", "main"]);
   assert.equal(linked.status, 0, `${linked.stderr}\n${linked.stdout}`);
   const result = json(linked.stdout);
   assert.equal(result.command, "repo link");

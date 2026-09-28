@@ -23,6 +23,7 @@ First public release, published to npm as `grove-multirepo`. The command is `gro
 - A Tree sitting in another repository's `{repo}` layout slot is reported as `misplaced`, and `fix --move` can repair it.
 - `doctor` reports orphaned lock-steal markers.
 - `repo add ../repo.git` resolves a relative local path from the directory you run it in.
+- `repo link` and `repo configure` set the branch new Trees start from with `--base`, replacing `--trunk`, which suggested a trunk that those commands never create. `repo add --trunk` is unchanged.
 - Piped output of any size arrives complete before Grove exits.
 
 ### Known issues

@@ -149,7 +149,7 @@ test("⑦ parity harness: every identity JSON carries appears in the human rende
 test("V3OUT-03: repo link exposes every acquisition fact in human and JSON modes", () => {
   const humanFx = makeFixture();
   assert.equal(humanFx.grove(["init"]).status, 0);
-  const human = humanFx.grove(["repo", "link", humanFx.repos[0]!.origin, "--name", "external", "--trunk", "main"]);
+  const human = humanFx.grove(["repo", "link", humanFx.repos[0]!.origin, "--name", "external", "--base", "main"]);
   assert.equal(human.status, 0, human.stderr || human.stdout);
 
   const config = json(readFileSync(join(humanFx.root, ".grove", "config.json"), "utf8"));
@@ -165,7 +165,7 @@ test("V3OUT-03: repo link exposes every acquisition fact in human and JSON modes
 
   const machineFx = makeFixture();
   assert.equal(machineFx.grove(["init"]).status, 0);
-  const machineRun = machineFx.grove(["--json", "repo", "link", machineFx.repos[0]!.origin, "--name", "external", "--trunk", "main"]);
+  const machineRun = machineFx.grove(["--json", "repo", "link", machineFx.repos[0]!.origin, "--name", "external", "--base", "main"]);
   assert.equal(machineRun.status, 0, machineRun.stderr || machineRun.stdout);
   const machine = json(machineRun.stdout);
   assert.deepEqual(

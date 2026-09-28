@@ -58,7 +58,7 @@ test("repo link resolves a subdirectory and does not mutate refs or worktrees", 
   writeFileSync(join(external, "nested", "note.txt"), "linked\n");
   const before = snapshot(external);
 
-  const linked = fixture.grove(["repo", "link", join(external, "nested"), "--name", "external", "--trunk", "main"]);
+  const linked = fixture.grove(["repo", "link", join(external, "nested"), "--name", "external", "--base", "main"]);
   assert.equal(linked.status, 0, linked.stderr || linked.stdout);
   assert.deepEqual(snapshot(external), before);
 
@@ -121,7 +121,7 @@ test("repo link accepts linked-worktree and bare inputs without changing their n
       common = git(worktree, ["rev-parse", "--path-format=absolute", "--git-common-dir"]);
     }
     const before = snapshot(common);
-    const linked = fixture.grove(["repo", "link", input, "--name", inputKind, "--trunk", "main"]);
+    const linked = fixture.grove(["repo", "link", input, "--name", inputKind, "--base", "main"]);
     assert.equal(linked.status, 0, `${inputKind}: ${linked.stderr}\n${linked.stdout}`);
     assert.deepEqual(snapshot(common), before, `${inputKind} registration changed Git`);
     const configured = JSON.parse(readFileSync(join(fixture.root, ".grove", "config.json"), "utf8")).repositories[0];
@@ -135,10 +135,10 @@ test("linked repositories support Trees while trunk operations and advisory conf
   git(resolve(fixture.root, ".."), ["clone", "-q", fixture.repos[0]!.origin, checkout]);
   git(checkout, ["remote", "add", "upstream", fixture.repos[0]!.origin]);
   assert.equal(fixture.grove(["init"]).status, 0);
-  assert.equal(fixture.grove(["repo", "link", checkout, "--name", "external", "--trunk", "main"]).status, 0);
+  assert.equal(fixture.grove(["repo", "link", checkout, "--name", "external", "--base", "main"]).status, 0);
   const common = git(checkout, ["rev-parse", "--path-format=absolute", "--git-common-dir"]);
   const beforePolicy = snapshot(common);
-  const configured = fixture.grove(["repo", "configure", "external", "--remote", "upstream", "--trunk", "develop"]);
+  const configured = fixture.grove(["repo", "configure", "external", "--remote", "upstream", "--base", "develop"]);
   assert.equal(configured.status, 0, `${configured.stderr}\n${configured.stdout}`);
   assert.deepEqual(snapshot(common), beforePolicy, "advisory configuration must not touch Git");
   const beforeTrunk = snapshot(common);
@@ -160,7 +160,7 @@ test("linked default Tree creation resolves its advisory trunk local-first, then
   assert.equal(fixture.grove(["init"]).status, 0);
   assert.throws(() => git(checkout, ["show-ref", "--verify", "--quiet", "refs/heads/develop"]));
   const remoteOid = git(checkout, ["rev-parse", "refs/remotes/origin/develop"]);
-  assert.equal(fixture.grove(["repo", "link", checkout, "--name", "external", "--trunk", "develop"]).status, 0);
+  assert.equal(fixture.grove(["repo", "link", checkout, "--name", "external", "--base", "develop"]).status, 0);
 
   const created = fixture.grove(["--json", "new", "remote-base", "--repo", "external"]);
   assert.equal(created.status, 0, `${created.stderr}\n${created.stdout}`);
@@ -175,12 +175,12 @@ test("linked default Tree creation resolves its advisory trunk local-first, then
   const localOid = git(checkout, ["rev-parse", "refs/heads/priority"]);
   git(checkout, ["update-ref", "refs/remotes/origin/priority", remoteOid]);
   git(checkout, ["switch", "-q", "main"]);
-  assert.equal(fixture.grove(["repo", "configure", "external", "--trunk", "priority"]).status, 0);
+  assert.equal(fixture.grove(["repo", "configure", "external", "--base", "priority"]).status, 0);
   const local = fixture.grove(["--json", "new", "local-base", "--repo", "external"]);
   assert.equal(local.status, 0, `${local.stderr}\n${local.stdout}`);
   assert.equal(JSON.parse(local.stdout).targets[0].after.headOid, localOid, "the local advisory ref wins over a different remote-tracking ref");
 
-  const configured = fixture.grove(["repo", "configure", "external", "--trunk", "absent"]);
+  const configured = fixture.grove(["repo", "configure", "external", "--base", "absent"]);
   assert.equal(configured.status, 0, `${configured.stderr}\n${configured.stdout}`);
   const missing = fixture.grove(["--json", "new", "missing-base", "--repo", "external"]);
   assert.equal(missing.status, 5, `${missing.stderr}\n${missing.stdout}`);
@@ -193,7 +193,7 @@ test("duplicate canonical registrations and symlinked layout roots refuse before
   const checkout = join(resolve(duplicate.root, ".."), "duplicate-source");
   git(resolve(duplicate.root, ".."), ["clone", "-q", duplicate.repos[0]!.origin, checkout]);
   assert.equal(duplicate.grove(["init"]).status, 0);
-  assert.equal(duplicate.grove(["repo", "link", checkout, "--name", "first", "--trunk", "main"]).status, 0);
+  assert.equal(duplicate.grove(["repo", "link", checkout, "--name", "first", "--base", "main"]).status, 0);
   const configPath = join(duplicate.root, ".grove", "config.json");
   const config = JSON.parse(readFileSync(configPath, "utf8"));
   config.repositories.push({ ...config.repositories[0], id: "repo-duplicate", name: "second" });

@@ -63,7 +63,7 @@ const cases = new Map<string, () => Invocation>([
     execFileSync("git", ["clone", "-q", fx.repos[0]!.origin, checkout]);
     return { fx, args: ["repo", "link", checkout, "--name", "linked"] };
   }],
-  ["repo configure", () => ({ fx: managed(), args: ["repo", "configure", "alpha", "--trunk", "main"] })],
+  ["repo configure", () => ({ fx: managed(), args: ["repo", "configure", "alpha", "--base", "main"] })],
   ["repo fetch", () => ({ fx: managed(), args: ["repo", "fetch", "alpha"] })],
   ["repo remove", () => ({ fx: managed(), args: ["repo", "remove", "alpha"] })],
   ["trunk add", () => ({ fx: managed(["develop"]), args: ["trunk", "add", "alpha", "develop"] })],

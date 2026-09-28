@@ -31,7 +31,7 @@ test("V3LINK-01/US2/003-git-native-grove-SC-016: built-artifact repo link is zer
   const fx = makeFixture({ repos: { alpha: ["develop"] } }); const checkout = join(tempDir("artifact-link"), "checkout"); git(join(checkout, ".."), ["clone", "-q", fx.repos[0]!.origin, checkout]);
   assert.equal(run(fx, ["init"]).status, 0);
   const before = `${git(checkout, ["for-each-ref", "--format=%(refname)%00%(objectname)"])}\n${git(checkout, ["worktree", "list", "--porcelain"])}`;
-  const linked = run(fx, ["repo", "link", checkout, "--name", "external", "--trunk", "develop"]); assert.equal(linked.status, 0, linked.stderr);
+  const linked = run(fx, ["repo", "link", checkout, "--name", "external", "--base", "develop"]); assert.equal(linked.status, 0, linked.stderr);
   assert.equal(`${git(checkout, ["for-each-ref", "--format=%(refname)%00%(objectname)"])}\n${git(checkout, ["worktree", "list", "--porcelain"])}`, before);
   for (const args of [["trunk", "add", "external", "future", "--from", "main"], ["trunk", "remove", "external", "main"], ["trunk", "sync", "external"]]) {
     const refusal = run(fx, args); assert.notEqual(refusal.status, 0); assert.match(refusal.stderr + refusal.stdout, /linked|repo link|advisory/i);

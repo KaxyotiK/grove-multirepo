@@ -204,7 +204,7 @@ test("a registered historical v1 ULID-suffixed trunk remains observable without 
 test("TRUNK-10/TRUNK-11: every linked trunk mutation, including preferred-trunk removal, refuses before refs or worktree registrations change", () => {
   const fx = makeFixture();
   assert.equal(fx.grove(["init"]).status, 0);
-  assert.equal(fx.grove(["repo", "link", fx.repos[0]!.origin, "--name", "linked", "--trunk", "main"]).status, 0);
+  assert.equal(fx.grove(["repo", "link", fx.repos[0]!.origin, "--name", "linked", "--base", "main"]).status, 0);
   const before = `${git(fx.repos[0]!.origin, ["for-each-ref", "--format=%(refname)%00%(objectname)"])}\n${git(fx.repos[0]!.origin, ["worktree", "list", "--porcelain"])}`;
   for (const args of [["trunk", "add", "linked", "future", "--from", "main"], ["trunk", "remove", "linked", "main"], ["trunk", "sync", "linked"]]) {
     const result = fx.grove(args);

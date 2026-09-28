@@ -159,7 +159,7 @@ test("REPO-09: all-repository fetch/sync skip no-remote repos, while explicit ta
   fx.grove(["init"]);
   fx.grove(["repo", "add", fx.repos[0]!.origin, "--name", "managed"]);
   const local = localRepo();
-  fx.grove(["repo", "link", local, "--name", "offline", "--trunk", "main"]);
+  fx.grove(["repo", "link", local, "--name", "offline", "--base", "main"]);
 
   const fetched = fx.grove(["--json", "repo", "fetch"]);
   // The contract has always read "The no-remote repository is SKIPPED and reported; naming it

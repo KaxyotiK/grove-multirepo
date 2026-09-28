@@ -21,7 +21,7 @@ npm run build
 
 1. Initialize a v3 workspace, add one managed repository, and link one existing standard checkout.
 2. Verify `repo add --trunk main --name grove-cli` creates a bare common repository under `repos/grove-cli` and a real initial worktree at exactly `trunks/main@grove-cli`; run Git from that directory, then add a second trunk and verify both are peer trunk-layout worktrees with readable collision-safe names.
-3. Verify `repo link --trunk <branch>` creates no ref or worktree, records the branch only as an advisory base, and that every trunk mutation refuses the linked repository without changing it. Repeat with the preferred trunk present only at the configured remote: Tree creation must use its exact OID without creating a local trunk ref or managed trunk worktree.
+3. Verify `repo link --base <branch>` creates no ref or worktree, records the branch only as an advisory base, and that every trunk mutation refuses the linked repository without changing it. Repeat with the preferred trunk present only at the configured remote: Tree creation must use its exact OID without creating a local trunk ref or managed trunk worktree.
 4. Create a multi-repository Grove and verify every selected target appears once at `groves/<grove>/trees/<grove>@<repo>`.
 5. In one Tree, run ordinary `git switch` to another branch; verify `grove tree ls`, `grove show`, and `grove status` immediately show the new branch.
 6. Use ordinary `git worktree add` at a configured Tree path; verify Grove discovers it without repair.
