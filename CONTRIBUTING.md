@@ -31,7 +31,7 @@ There is no hosted CI. Verification is local, on macOS.
 
 ## Writing help text
 
-Command help is generated from each command's `CommandSpec` in `src/commands/registry.ts`, which is also the runtime option schema. Keep summaries and argument lines short and use the vocabulary in [How it works](README.md#how-it-works). In particular:
+The `CommandSpec` type is defined in `src/commands/registry.ts`; each command's spec object lives in its module under `src/commands/*.ts`. Edit those objects to change help summaries, arguments, and examples. Their `options` fields also define the runtime option schema. Keep summaries and argument lines short and use the vocabulary in [How it works](README.md#how-it-works). In particular:
 
 - Never describe config or metadata as owning a live branch or Tree; Git owns live state.
 - `repo link` accepts anything Git resolves to a repository (root, subdirectory, linked worktree, or bare repository). Never present a linked checkout as a Grove trunk.

@@ -41,7 +41,7 @@ These were deleted from the tree before public release. Older specs, plans, and 
 - `docs/herdr-sidebar-capability-assessment.md`
 - `docs/git-native-grove-proposal.md` (the pre-ruling v3 proposal; its §5, §8.2, and §8.4 now live in `config-v3.md`, `cli-surface-v3.md`, and `json-results-v1.md`)
 - `docs/LEGACY-CHECKLIST.md` (enforced by `scripts/legacy-scan.sh`), `docs/PROVENANCE.md`
-- `docs/help-authoring-context.md` (current content moved into `README.md`: Concepts, Writing help text)
+- `docs/help-authoring-context.md` (current content moved into [README: How it works](../README.md#how-it-works) and [CONTRIBUTING: Writing help text](../CONTRIBUTING.md#writing-help-text))
 - `docs/reviews/` (all five reviews)
 - `reviews/` (usability and red-team write-ups)
 - the dated review records under `specs/001-grove-cli/reviews/` and `specs/003-git-native-grove/reviews/` that nothing cited

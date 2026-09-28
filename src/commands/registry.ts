@@ -46,7 +46,8 @@ export interface CommandSpec {
   /**
    * Positionals and options, in display order — each a terse one-liner (`<name>` / `--flag <v>`
    * paired with a short description). Rendered as aligned Arguments/Options blocks under the
-   * summary. Keep it short; the conceptual model and help vocabulary are in README.md (Concepts; Writing help text).
+   * summary. Keep it short; see README.md (How it works) for the conceptual model and
+   * CONTRIBUTING.md (Writing help text) for help-authoring guidance.
    */
   args?: HelpArg[];
   /** The sole runtime option schema. Handlers consume it through `parseCommand(ctx)`. */
