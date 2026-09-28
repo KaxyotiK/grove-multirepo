@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.1
 
 - Archive refuses and itemizes unobserved Git-marked Tree content when its repository cannot be inspected, leaving worktree registrations and files in place.
 - Empty Tree layout slots no longer require destructive consent for Grove deletion; ordinary files in those slots remain protected.

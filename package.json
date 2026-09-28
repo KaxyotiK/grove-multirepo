@@ -1,6 +1,6 @@
 {
   "name": "grove-multirepo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A single-command, workspace-local CLI for managing multi-repository units of work (Groves) built on Git worktrees.",
   "keywords": [
     "git",
