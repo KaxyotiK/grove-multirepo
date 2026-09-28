@@ -71,6 +71,7 @@ Every task in [tasks.md](tasks.md) cites one or more stable rows below. Requirem
 | TRACE-ARCHIVE-LAYOUT | FR-029A, FR-036A, Constitution I/IV/V, Contract V3ALY-01..04 | T-ALY-1..3 | Initial `tests/cli/archive-layout-v3.test.ts`: V3ALY-01/02/03 red, V3ALY-04 skipped on a case-insensitive volume; review follow-up depth-gap and case-only destination witnesses red before correction and green afterward; V3ALY-03 case-sensitive distinct destinations and V3ALY-04 separately passed on mounted case-sensitive APFS; merged V3DPF/V3RCV/V3ALY slice: 22 passed, 1 ordinary-volume skip; `tests/cli/loose-consent-inventory.test.ts`: 7 passed. Final full local gate after recovery, file-surface, locks, and delete-performance merges: typecheck, 253 module passed/1 skip, 487 CLI passed/1 skip, 20 e2e passed, scan passed, traceability passed (180 original and 88 V3 scenarios). |
 | TRACE-DELETE-PERF | FR-053, Contract V3DPF-01, V3DPF-02, Constitution IV | T-DPF-1–4 | `tests/cli/delete-performance.test.ts` (passing Git-call bound, dirty-work refusal, and loose-content refusal); baseline and after measurements kept outside the repository |
 | TRACE-OP-RECORD-SHAPE | Contract V3FSF-01 | issue #23 | `tests/cli/regressions.test.ts`; malformed operation steps are reported by file readers and excluded from recovery resume |
+| TRACE-DOWNSTREAM-GROVE-CMUX | Contract V3DWN-01–07 (cli-surface-v3 "Downstream interface: grove-cmux") | grove-cmux wrapper dependencies | `tests/cli/downstream-grove-cmux-v3.test.ts` |
 
 ## Command disposition inventory
 

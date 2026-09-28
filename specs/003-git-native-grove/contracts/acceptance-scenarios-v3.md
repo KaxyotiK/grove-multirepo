@@ -97,6 +97,13 @@ These scenarios supplement, and do not renumber or replace, the 180 scenarios in
 | V3REL-03 | For a dead workspace lock with this Mac's UUID and a changed hostname label, `reconcile --audit-only` exits 0 with the same lock diagnostic identity and automatic-recovery classification as `doctor`, preserving the lock record. | Release-fix audit CLI integration |
 | V3REL-04 | For a legacy dead workspace lock without a UUID and with the current hostname, `reconcile --audit-only` exits 0 with the same lock diagnostic identity and automatic-recovery classification as `doctor`, preserving the lock record. | Release-fix audit CLI integration |
 | V3REL-05 | For a dead foreign-machine workspace lock with the current hostname, `reconcile --audit-only` exits 0 with the same lock diagnostic identity and manual-recovery classification as `doctor`, preserving the lock record. | Release-fix audit CLI integration |
+| V3DWN-01 | `grove --json new <name>` with `--repo <repo>` or `--repo=<repo>` exits 0 with one JSON value, `schemaVersion` 1, `outcome` `complete`, and a Tree target whose `selector.tree` is `<name>@<repo>` and whose `selector.path` has the Grove root as its grandparent. | Downstream grove-cmux CLI integration |
+| V3DWN-02 | `grove --json agent ls` lists an added agent in a top-level `agents` array with its `name` and `available: true`. | Downstream grove-cmux CLI integration |
+| V3DWN-03 | `grove agent run <grove> --tree <grove>@<repo> --agent <name> -- <args>` runs the agent in that Tree, forwards the arguments verbatim, and passes its exit status through. | Downstream grove-cmux CLI integration |
+| V3DWN-04 | Under the default layout the Tree at `groves/<grove>/trees/<grove>@<repo>` is its own worktree, and archiving the Grove creates `archives/<grove>` and removes the Tree. | Downstream grove-cmux CLI integration |
+| V3DWN-05 | `grove init <path> --name <name>`, then `repo add` and `new --all` through `--workspace`, create the `main@<repo>` trunk from the remote HEAD and a Tree on the Grove branch. | Downstream grove-cmux CLI integration |
+| V3DWN-06 | Human `grove agent ls` shows an agent added with `grove agent add <name> <command>` as a `Name: <name>` line. | Downstream grove-cmux CLI integration |
+| V3DWN-07 | Plain `grove delete <grove>` exits 5 `refused-precondition` naming `.grove-cmux/projection.json`, and still exits 5 when `.grove-cmux/` is empty; `--allow-destructive-all` removes the Grove. | Downstream grove-cmux CLI integration |
 
 ## Retired v3 scenarios
 

@@ -102,6 +102,18 @@ Errors for unknown or malformed commands and options, surplus positionals, and `
 
 `repo link` accepts a repository whose remote URLs embed credentials. Grove does not write that config and records only the preferred remote name. If `sync` reads a URL-valued `branch.<name>.remote`, it redacts that value before placing it in a result or operation record; only a value that passes the remote-name check, is listed by `git remote`, and is unchanged by remote redaction is echoed as a name. Git's own messages do not reliably hide remote credentials (Git 2.50 strips a user name and password on an authentication failure, but prints a user-name-only URL verbatim in `could not read Password for '<url>'`), and Grove does not surface them: `repo fetch` and `sync` classify a failed fetch as `git-failed` and discard its stderr; a linked repository's Git directory inside the workspace is off the file surface (`V3SEC-06`). Refusing it would reject valid Git state created outside Grove (constitution I).
 
+## Downstream interface: grove-cmux
+
+The grove-cmux wrapper (npm `grove-multirepo-cmux`) runs `grove` and depends on the following surfaces. They are pinned by `V3DWN-01` to `V3DWN-07` so that a Grove change which would break the wrapper fails Grove's own gate. Changing any of them is a change to the intended workflow and needs the owner's approval and a coordinated grove-cmux release.
+
+- `grove --json new <name>` with `--all`, `--repo <repo>`, or `--repo=<repo>` exits 0 and prints one JSON value with numeric `schemaVersion` 1 and `outcome` `complete`; a Tree target carries `selector.path` and `selector.tree`, and the Tree path's grandparent is the Grove root (`V3DWN-01`).
+- `grove --json agent ls` prints a top-level `agents` array whose entries have `name` and a boolean `available` (`V3DWN-02`).
+- `grove agent run <grove> --tree <grove>@<repo> [--agent <name>] [-- <args>...]` runs the agent in the foreground in that Tree, forwards the arguments after `--` verbatim, and passes its exit status through (`V3DWN-03`).
+- Under the default layout each Tree is its own worktree at `groves/<grove>/trees/<grove>@<repo>`, and an archived Grove has `archives/<grove>` (`V3DWN-04`).
+- `grove init <path> --name <name>`, `grove --workspace <path> repo add <remote> --name <repo>` taking the remote HEAD as its trunk, and `grove --workspace <path> new <grove> --all` build a working fixture (`V3DWN-05`).
+- `grove agent add <name> <command>` is listed by human `grove agent ls` as a `Name: <name>` line (`V3DWN-06`).
+- Plain `grove delete <grove>` refuses with exit 5 `refused-precondition` while `<grove root>/.grove-cmux/` exists, with or without files in it, naming it as loose Grove content; only `--allow-destructive-all` removes it (`V3DWN-07`).
+
 ## Behavioral guarantees
 
 - Default, explicit, and compatibility selections include every target exactly once in deterministic order independent of equivalent selector input order.
