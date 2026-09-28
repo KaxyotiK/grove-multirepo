@@ -274,6 +274,7 @@ The migration identifiers below are retained only as stable historical citation 
 - **FR-051A**: Each proposal and inherited acceptance criterion MUST map to at least one feature requirement, owning phase, exact executable witness, and planned verification. Scenario-ID presence or aggregate test counts alone MUST NOT be treated as semantic parity proof.
 - **FR-051B**: Every planned implementation task MUST map to at least one feature requirement and one traceability-ledger row.
 - **FR-052**: Recovery MUST share doctor's complete read-only diagnostic audit, resume metadata-free Grove deletion, give operation-specific reconcile remedies for lifecycle retries and metadata failures, and revalidate resumed repository acquisition against current config using exact alias, identity, store, and trunk conflicts rather than a global revision equality check (`cli-surface-v3.md` §Removal and recovery; V3RCV-01–04).
+- **FR-053**: A clean two-Tree `grove delete` MUST use at most 120 Git invocations while preserving all plan-time and point-of-use identity, protected-path, Tree-work, loose-content, and consent checks (`cli-surface-v3.md` §Delete observation efficiency; V3DPF-01–02).
 
 ### Key Entities
 
@@ -322,6 +323,7 @@ The migration identifiers below are retained only as stable historical citation 
 - **003-git-native-grove-SC-016**: In 100% of repository-acquisition scenarios, `repo add` produces a bare common repository plus a real readable trunk-layout worktree (including exact `trunks/main@<repo>` evidence), `repo link` produces no trunk/ref/worktree mutation, linked remote-only preferred trunks remain usable as Tree bases without local trunk creation, and every trunk command refuses linked repositories before mutation.
 - **003-git-native-grove-SC-017**: The complete registered command surface has zero independent human-result callbacks or direct command-handler output writes; object, collection, scalar, and error emitter tests prove that command results expose the same complete facts in human and `--json` modes, and the acquisition E2E proves `repo link` exposes repository, operation, remote, trunk, and path facts in both modes.
 - **003-git-native-grove-SC-018**: Top-level, noun-family, and per-command human help each pass executable usability assertions for conventional sections, spacing, aligned names/descriptions, notes/examples, and zero generic object-dump leakage; corresponding JSON assertions prove the same meaningful help facts remain structured and machine-usable.
+- **003-git-native-grove-SC-019**: A clean two-Tree deletion uses no more than 120 Git invocations, and all tested dirty-work and loose-content refusals retain their existing exit and safety behavior.
 
 ## Assumptions
 

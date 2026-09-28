@@ -378,3 +378,10 @@ This phase closes the PR review's demonstrated output-conformance bug without ad
 - [x] T120 [US7] Add failing V3RCV witnesses in `tests/cli/recovery-v3.test.ts` for diagnostic parity, metadata-free delete, lifecycle remedies, and independent interrupted acquisitions.
 - [x] T121 [US7] Implement shared audit and recovery corrections in `src/commands/doctor.ts`, `src/commands/reconcile.ts`, and the recovery helper and paths of `src/commands/lifecycle.ts`.
 - [x] T122 [US7] Run focused tests and the full local gate, append passing witnesses to `traceability.md`, and record user-visible corrections in `CHANGELOG.md`.
+
+## Issue #32 delete observation cost
+
+- [ ] T-DPF-1 Record one-, two-, and four-Tree Git-call and elapsed-time baselines using the passive PATH proxy — FR-053, V3DPF-01; proof: external baseline log.
+- [ ] T-DPF-2 Add the failing V3DPF-01 call-count witness and V3DPF-02 work/loose-content refusal controls — FR-053; proof: focused red on `6aa08af`.
+- [ ] T-DPF-3 Limit delete point-of-use observation to facts used for identity and protected-path decisions while retaining full plan-time and target-specific safety checks — FR-053; depends on T-DPF-2; proof: focused green and destructive suites.
+- [ ] T-DPF-4 Re-measure one, two, and four Trees, run the full local gate, and record the passing witness — FR-053; depends on T-DPF-3; proof: external measurements and gate log.

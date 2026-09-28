@@ -351,3 +351,12 @@ No constitution violations or complexity waivers. Schema-1/schema-2 ownership pa
 ## Implemented structure
 
 The final cutover accepts schema 3 only and refuses every foreign schema before interpreting its shape. `src/migration/`, migration commands, ownership loaders, production claims, provenance, rollback journals, ref-deleting cleanup, and mutable live-state arrays are absent and guarded by the legacy scan.
+
+## Issue #32 delete observation cost
+
+**Authority:** FR-053; `cli-surface-v3.md` §Delete observation efficiency; V3DPF-01–02; constitution IV. **Measured baseline at `6aa08af`:** direct clean deletion of one, two, and four Trees used 73, 186, and 532 Git calls, respectively, with 1.41, 3.12, and 8.71 seconds elapsed on the local machine. Repeated full workspace observations account for the rising status, ignored-file, upstream, and sequencer probes.
+
+1. Record a passive PATH-proxy baseline for one, two, and four Trees and identify repeated argv families. Proof: measurement log outside the repository.
+2. Add V3DPF-01 and V3DPF-02 built-artifact witnesses before production edits. The clean two-Tree count must fail on the baseline; dirty and untracked Tree work and `.grove-cmux/` remain refusal controls.
+3. Use an identity-focused workspace observation only for delete's point-of-use structure and ownership checks. Keep full preflight observation and target-specific work and loose-content checks. Proof: focused witnesses and existing destructive suites.
+4. Re-measure one, two, and four Trees, run the full local gate, and record the passing witness in traceability. Proof: local gate log outside the repository.

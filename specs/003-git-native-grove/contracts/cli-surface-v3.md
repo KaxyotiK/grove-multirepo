@@ -172,3 +172,7 @@ Human and JSON modes MUST carry the **same meaningful facts** without requiring 
 ### ⑧ `specs/001-grove-cli` is closed to new behaviour
 
 It remains the stable `§` citation authority and the home of the 180 regression scenario IDs, and is never renumbered or deleted. No new behaviour is written there; this directory supersedes it wherever the two disagree. See `specs/001-grove-cli/contracts/README.md` and `specs/README.md`.
+
+## Delete observation efficiency
+
+For a clean two-Tree Grove, a direct `grove delete` MUST complete with at most 120 Git invocations. The bound includes preflight, fresh point-of-use observations, work checks, and native removals. The command MUST retain the same Tree work checks at plan and point of use, including tracked, untracked, and ignored entries; the same loose-content inventory and consent comparison; and the same identity and protected-path checks. A lighter point-of-use workspace observation may omit worktree facts that no delete decision reads, while the target-specific work checks remain fresh. Witnesses: `V3DPF-01`, `V3DPF-02`.
