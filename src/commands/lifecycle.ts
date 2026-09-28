@@ -56,18 +56,31 @@ function partialResult(command: string, completed: readonly ResultTarget[], fail
   return { ...completeResult(command, [...completed, failing], diagnostics), outcome: "partial" as const, operationId };
 }
 
-async function lifecycleContext(ctx: CommandContext, ref: string | undefined) {
+async function lifecycleContext(ctx: CommandContext, ref: string | undefined, allowAbandonedDelete = false) {
   if (!ref) throw new GroveError({ kind: "invalid-input", what: "a Grove is required", why: "no <grove> was given", remedy: "Run `grove ls`, then pass one exact Grove name or id." });
   const ws = requireWorkspace({ cwd: ctx.cwd, workspace: ctx.globals.workspace });
   const g = git();
   const snapshot = await observeWorkspace(ws, g);
   const matches = snapshot.groves.filter((candidate) => candidate.name === ref || candidate.metadata?.manifest.id === ref);
   if (matches.length !== 1) {
+    if (allowAbandonedDelete && matches.length === 0) {
+      const path = resolveLayoutTarget(snapshot.layout, expandGrovePath(snapshot.layout, ref));
+      if (existsSync(path) && !existsSync(centralGroveManifest(ws.root, ref))) {
+        const current = captureDirectoryTarget(ws.root, "grove-content", { grove: ref }, path);
+        const abandonedDelete = scanOperations(ws.root).records.reverse().find((record) => {
+          if (record.kind !== "grove-delete" || record.state !== "abandoned" || record.scope.grove !== ref) return false;
+          const content = record.steps.find((step) => step.kind === "directory-remove");
+          const input = content?.input as { path?: unknown; targetIdentity?: { device?: unknown; inode?: unknown; expectedPresent?: unknown } } | undefined;
+          return input?.path === path && input.targetIdentity?.expectedPresent === true && input.targetIdentity.device === current.device && input.targetIdentity.inode === current.inode;
+        });
+        if (abandonedDelete) return { ws, g, snapshot, grove: { name: ref, trees: [], metadata: null }, abandonedDelete };
+      }
+    }
     const pending = matches.length === 0 ? pendingOperations(ws.root).find((record) => record.scope.grove === ref || record.scope.newName === ref) : null;
     if (pending) throw new GroveError({ kind: "refused-conflict", what: `Grove "${ref}" has a pending operation`, why: `operation ${pending.id} (${pending.kind}, ${pending.state}) owns the target`, remedy: pendingOperationRemedy(pending), detail: { operationId: pending.id, kind: pending.kind, state: pending.state } });
     throw new GroveError({ kind: "invalid-input", what: `No unique Grove "${ref}"`, why: `${matches.length} observed/advisory Groves match`, remedy: "Run `grove ls`." });
   }
-  return { ws, g, snapshot, grove: matches[0]! };
+  return { ws, g, snapshot, grove: matches[0]!, abandonedDelete: null };
 }
 
 function groveManifest(grove: Awaited<ReturnType<typeof lifecycleContext>>["grove"]): GroveManifest {
@@ -547,38 +560,28 @@ function assertCompleteLooseInventory(inventory: LooseInventory, what: string): 
 
 async function deleteHandler(ctx: CommandContext): Promise<number> {
   const parsed = parseCommand(ctx);
-  const ref = parsed.positionals[0];
-  if (ref) {
-    const ws = requireWorkspace({ cwd: ctx.cwd, workspace: ctx.globals.workspace });
-    const snapshot = await observeWorkspace(ws, git());
-    if (!snapshot.groves.some((candidate) => candidate.name === ref || candidate.metadata?.manifest.id === ref)) {
-      const abandoned = scanOperations(ws.root).records.find((record) => record.kind === "grove-delete" && record.state === "abandoned" && record.scope.grove === ref);
-      const content = abandoned?.steps.find((step) => step.kind === "directory-remove");
-      const input = content?.input as { path?: unknown; targetIdentity?: { device?: unknown; inode?: unknown; expectedPresent?: unknown } } | undefined;
-      if (abandoned && typeof input?.path === "string" && input.targetIdentity?.expectedPresent === true && typeof input.targetIdentity.device === "number" && typeof input.targetIdentity.inode === "number") {
-        const path = resolveLayoutTarget(snapshot.layout, expandGrovePath(snapshot.layout, ref));
-        if (path === input.path && existsSync(path) && !existsSync(centralGroveManifest(ws.root, ref))) {
-          return withOperationTargetLocks(ws.root, [`grove:${ref}`], "delete-abandoned-scaffold", async () => {
-            assertTargetsAvailable(ws.root, [`grove:${ref}`]);
-            const current = captureDirectoryTarget(ws.root, "grove-content", { grove: ref }, path);
-            if (current.device !== input.targetIdentity?.device || current.inode !== input.targetIdentity?.inode) throw new GroveError({ kind: "refused-conflict", what: `Cannot finish delete ${ref}`, why: "the Grove directory was replaced after the abandoned operation", remedy: "Inspect the current directory before retrying." });
-            const entries = readdirSync(path);
-            if (entries.length > 1 || (entries.length === 1 && entries[0] !== "trees")) throw new GroveError({ kind: "refused-conflict", what: `Cannot finish delete ${ref}`, why: "the Grove directory contains new content", remedy: "Move the content to keep, then retry `grove delete`." });
-            const trees = join(path, "trees");
-            if (entries.length === 1) {
-              if (!lstatSync(trees).isDirectory() || readdirSync(trees).length !== 0) throw new GroveError({ kind: "refused-conflict", what: `Cannot finish delete ${ref}`, why: "the Tree scaffold contains new content", remedy: "Inspect the content before retrying." });
-              removeContainedDirectory(containedPath(ws.root, trees, `Cannot finish delete ${ref}`));
-            }
-            removeContainedDirectory(containedPath(ws.root, path, `Cannot finish delete ${ref}`));
-            const after = { grove: ref, deleted: true, refsRetained: true, abandonedOperationId: abandoned.id };
-            return ctx.emit.result(completeResult("delete", [{ selector: { grove: ref, path }, before: { abandonedOperationId: abandoned.id }, action: "remove-empty-scaffold", after, reason: null }], snapshot.diagnostics, after), 0);
-          });
-        }
+  {
+    const { ws, g, snapshot, grove, abandonedDelete } = await lifecycleContext(ctx, parsed.positionals[0], true);
+    if (abandonedDelete) {
+      const path = resolveLayoutTarget(snapshot.layout, expandGrovePath(snapshot.layout, grove.name));
+      const entries = readdirSync(path);
+      const trees = join(path, "trees");
+      if (entries.length === 0 || (entries.length === 1 && entries[0] === "trees" && lstatSync(trees).isDirectory() && readdirSync(trees).length === 0)) {
+        return withOperationTargetLocks(ws.root, [`grove:${grove.name}`], "delete-abandoned-scaffold", async () => {
+          assertTargetsAvailable(ws.root, [`grove:${grove.name}`]);
+          const content = abandonedDelete.steps.find((step) => step.kind === "directory-remove");
+          const input = content?.input as { targetIdentity?: { device?: unknown; inode?: unknown } } | undefined;
+          const current = captureDirectoryTarget(ws.root, "grove-content", { grove: grove.name }, path);
+          if (current.device !== input?.targetIdentity?.device || current.inode !== input.targetIdentity.inode) throw new GroveError({ kind: "refused-conflict", what: `Cannot finish delete ${grove.name}`, why: "the Grove directory was replaced after the abandoned operation", remedy: "Inspect the current directory before retrying." });
+          const now = readdirSync(path);
+          if (now.length === 1 && now[0] === "trees" && lstatSync(trees).isDirectory() && readdirSync(trees).length === 0) removeContainedDirectory(containedPath(ws.root, trees, `Cannot finish delete ${grove.name}`));
+          else if (now.length !== 0) throw new GroveError({ kind: "refused-conflict", what: `Cannot finish delete ${grove.name}`, why: "new content appeared", remedy: "Retry from fresh observed state." });
+          removeContainedDirectory(containedPath(ws.root, path, `Cannot finish delete ${grove.name}`));
+          const after = { grove: grove.name, deleted: true, refsRetained: true, abandonedOperationId: abandonedDelete.id };
+          return ctx.emit.result(completeResult("delete", [{ selector: { grove: grove.name, path }, before: { abandonedOperationId: abandonedDelete.id }, action: "remove-empty-scaffold", after, reason: null }], snapshot.diagnostics, after), 0);
+        });
       }
     }
-  }
-  {
-    const { ws, g, snapshot, grove } = await lifecycleContext(ctx, parsed.positionals[0]);
     const manifest = groveManifest(grove);
     const recordedContent = manifest.state === "archived" && typeof manifest.archiveSnapshot?.looseContentPath === "string" ? manifest.archiveSnapshot.looseContentPath : null;
     // `archiveSnapshot.looseContentPath` is ADVISORY metadata — the constitution explicitly invites

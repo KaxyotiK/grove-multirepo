@@ -57,10 +57,52 @@ test("V3RCV-02: explicit delete cleans only the empty scaffold left by an abando
   const id = records(fx, "grove-delete")[0].id;
   assert.equal(fx.grove(["reconcile", "--abandon", id]).status, 0);
   const protectedRetry = fx.grove(["delete", "g"]);
-  assert.notEqual(protectedRetry.status, 0);
+  assert.equal(protectedRetry.status, 5);
+  assert.match(protectedRetry.stdout + protectedRetry.stderr, /late\.txt/);
   assert.equal(existsSync(join(root, "late.txt")), true);
   rmSync(join(root, "late.txt"));
   const retry = fx.grove(["--json", "delete", "g"]);
+  assert.equal(retry.status, 0, retry.stdout + retry.stderr);
+  assert.equal(existsSync(root), false);
+});
+
+test("V3RCV-02: consented projection after abandoned delete uses the normal loose-content plan", async () => {
+  const fx = makeFixture();
+  for (const args of [["init"], ["repo", "add", fx.repos[0]!.origin, "--name", "alpha"], ["new", "g", "--all"]]) assert.equal(fx.grove(args).status, 0);
+  const root = join(fx.root, "groves", "g");
+  await interrupt(fx, ["delete", "g"], ["worktree", "remove", "--", join(root, "trees", "g@alpha")]);
+  const projection = join(root, ".grove-cmux", "projection.json");
+  mkdirSync(join(root, ".grove-cmux"));
+  writeFileSync(projection, "{}\n");
+  assert.notEqual(fx.grove(["reconcile"]).status, 0);
+  assert.equal(fx.grove(["reconcile", "--abandon", records(fx, "grove-delete")[0].id]).status, 0);
+  const refusal = fx.grove(["--json", "delete", "g"]);
+  assert.equal(refusal.status, 5, refusal.stdout + refusal.stderr);
+  assert.match(refusal.stdout + refusal.stderr, /projection\.json/);
+  assert.equal(existsSync(projection), true);
+  const consented = fx.grove(["--json", "delete", "g", "--allow-destructive-all"]);
+  assert.equal(consented.status, 0, consented.stdout + consented.stderr);
+  assert.equal(existsSync(root), false);
+});
+
+test("V3RCV-02: the latest matching abandoned delete binds a recreated Grove", async () => {
+  const fx = makeFixture();
+  for (const args of [["init"], ["repo", "add", fx.repos[0]!.origin, "--name", "alpha"]]) assert.equal(fx.grove(args).status, 0);
+  const created = fx.grove(["--json", "new", "g", "--all"]);
+  assert.equal(created.status, 0);
+  const branch = json(created.stdout).targets[0].after.branch;
+  const root = join(fx.root, "groves", "g");
+  for (let round = 0; round < 2; round++) {
+    if (round === 1) assert.equal(fx.grove(["new", "g", "--repo", "alpha", "--branch", `alpha=${branch}`]).status, 0);
+    await interrupt(fx, ["delete", "g"], ["worktree", "remove", "--", join(root, "trees", "g@alpha")]);
+    writeFileSync(join(root, "late.txt"), "preserve\n");
+    assert.notEqual(fx.grove(["reconcile"]).status, 0);
+    const latest = records(fx, "grove-delete").at(-1);
+    assert.equal(fx.grove(["reconcile", "--abandon", latest.id]).status, 0);
+    rmSync(join(root, "late.txt"));
+    if (round === 0) rmSync(root, { recursive: true });
+  }
+  const retry = fx.grove(["delete", "g"]);
   assert.equal(retry.status, 0, retry.stdout + retry.stderr);
   assert.equal(existsSync(root), false);
 });
