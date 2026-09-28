@@ -68,7 +68,7 @@ Every task in [tasks.md](tasks.md) cites one or more stable rows below. Requirem
 | TRACE-LOOSE-CONSENT | FR-023, FR-023A, Contract V3DES-09, V3DES-10, Constitution IV | T-LOOSE-1-T-LOOSE-3 | `tests/cli/loose-consent-inventory.test.ts`; `tests/module/loose-inventory.test.ts`; `reviews/loose-consent-inventory-ledger.md` |
 | TRACE-PARTIAL-RECEIPT | FR-023A, FR-024, Contract V3DES-11, V3DES-12, V3DES-13, V3OPS-08, Constitution IV, V | T-PARTIAL-1-T-PARTIAL-5 | `tests/cli/partial-receipt-v3.test.ts`; `reviews/partial-receipt-ledger.md` |
 | TRACE-RELATIVE-REPO-PATH | FR-011A-E, FR-018A-C, Contract V3ACQ-02, V3SEC-05, V3SEC-07 | issue #22 | `tests/cli/relative-repo-path-v3.test.ts`; `reviews/relative-repo-path-ledger.md` |
-| TRACE-ARCHIVE-LAYOUT | FR-029A, FR-036A, Constitution I/IV/V, Contract V3ALY-01..04 | T-ALY-1..3 | Initial `tests/cli/archive-layout-v3.test.ts`: V3ALY-01/02/03 red, V3ALY-04 skipped on a case-insensitive volume; corrected file: 4 passed, 1 volume skip; `tests/cli/layout-templates-v3.test.ts` 9 passed; module layout/path/inventory slice 24 passed, 1 volume skip. Final full gate pending. |
+| TRACE-ARCHIVE-LAYOUT | FR-029A, FR-036A, Constitution I/IV/V, Contract V3ALY-01..04 | T-ALY-1..3 | Initial `tests/cli/archive-layout-v3.test.ts`: V3ALY-01/02/03 red, V3ALY-04 skipped on a case-insensitive volume; corrected file: 4 passed, 1 volume skip; V3ALY-04 separately passed on mounted case-sensitive APFS; `tests/cli/layout-templates-v3.test.ts` 9 passed; module layout/path/inventory slice 24 passed, 1 volume skip. Final full gate pending. |
 
 ## Command disposition inventory
 

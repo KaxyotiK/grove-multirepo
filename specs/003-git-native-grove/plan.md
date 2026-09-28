@@ -346,7 +346,7 @@ The final cutover accepts schema 3 only and refuses every foreign schema before 
 
 ## Archive and layout repair lane (V3ALY)
 
-**Authority:** Constitution I, IV, V; FR-029A and FR-036A; `cli-surface-v3.md` and `config-v3.md` V3ALY amendments. **Baseline:** the V3ALY-01/02/03 focused built-artifact witnesses failed before implementation; V3ALY-04 is volume-dependent and skips on the current case-insensitive test volume.
+**Authority:** Constitution I, IV, V; FR-029A and FR-036A; `cli-surface-v3.md` and `config-v3.md` V3ALY amendments. **Baseline:** the V3ALY-01/02/03 focused built-artifact witnesses failed before implementation; V3ALY-04 is volume-dependent, skips on the default case-insensitive test volume, and passes on mounted case-sensitive APFS.
 
 1. Add V3ALY-01 through V3ALY-04 acceptance rows and executable witnesses; capture the failing baseline before source changes.
 2. Refuse archive when Git inspection leaves Tree membership unknown, itemizing Tree-position content before any move. Reject colliding repair destinations before dry-run or operation creation. Compare case-variant owner paths by filesystem identity. Dependency: 1.
