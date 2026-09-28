@@ -275,6 +275,7 @@ The migration identifiers below are retained only as stable historical citation 
 - **FR-050**: The project constitution MUST receive a major amendment that establishes the Git-native ownership boundary before technical planning is approved.
 - **FR-051A**: Each proposal and inherited acceptance criterion MUST map to at least one feature requirement, owning phase, exact executable witness, and planned verification. Scenario-ID presence or aggregate test counts alone MUST NOT be treated as semantic parity proof.
 - **FR-051B**: Every planned implementation task MUST map to at least one feature requirement and one traceability-ledger row.
+- **FR-052**: Recovery MUST share doctor's complete read-only diagnostic audit, resume metadata-free Grove deletion, give operation-specific reconcile remedies for lifecycle retries and metadata failures, and revalidate resumed repository acquisition against current config using exact alias, identity, store, and trunk conflicts rather than a global revision equality check (`cli-surface-v3.md` §Removal and recovery; V3RCV-01–04).
 
 ### Key Entities
 

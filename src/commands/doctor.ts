@@ -9,9 +9,25 @@ import { pendingOperationRemedy, pendingOperations } from "../store/operation.ts
 import { DEFAULT_STALE_MS, scanStaleLocks } from "../store/lock.ts";
 import { locksDir } from "../paths/layout.ts";
 import { makeDiagnostic } from "../model/conformance.ts";
+import type { ObservedWorkspace } from "../model/observed.ts";
 
 function subjectOf(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
+}
+
+export function auditDiagnostics(root: string, snapshot: ObservedWorkspace) {
+  const diagnostics = [...snapshot.diagnostics];
+  for (const finding of scanStaleLocks(locksDir(root))) {
+    if (finding.kind === "orphaned-steal-marker") {
+      diagnostics.push(makeDiagnostic({ code: "orphaned-steal-marker", severity: "info", subject: { kind: "lock-steal-marker", path: finding.file }, facts: { lock: finding.lock, lockState: finding.lockState, reason: finding.reason, recovery: finding.recovery }, summary: "An orphaned steal marker will be reclaimed automatically by the next successful lock acquisition", remedy: finding.lockState === "held" ? "Wait for or resolve the associated lock holder, then retry the intended Grove mutation; the first successful lock acquisition will remove this marker." : "Retry the intended Grove mutation; the next successful lock acquisition will remove this marker." }));
+      continue;
+    }
+    const automatic = finding.recovery === "automatic";
+    const reclaimBlocked = automatic && finding.stealMarker === "fresh";
+    diagnostics.push(makeDiagnostic({ code: "stale-lock", severity: automatic ? "info" : "policy", subject: { kind: "lock", path: finding.file }, facts: { reason: finding.reason, holder: finding.holder, recovery: finding.recovery, ...(finding.stealMarker ? { stealMarker: finding.stealMarker } : {}) }, summary: reclaimBlocked ? "A stale lock is waiting for another reclaim attempt" : automatic ? "A stale lock will be reclaimed automatically by the next mutation" : "A lock file requires manual recovery", remedy: reclaimBlocked ? `Another reclaim is in progress or was interrupted. Retry once the steal marker is older than the ${DEFAULT_STALE_MS / 1_000}-second stale window.` : automatic ? "Retry the intended Grove mutation; it will reclaim this lock before proceeding." : "Confirm no Grove process is running against this workspace, then remove the lock file." }));
+  }
+  for (const record of pendingOperations(root)) diagnostics.push(makeDiagnostic({ code: "pending-operation", severity: "policy", subject: { kind: "operation", operationId: record.id }, facts: { kind: record.kind, state: record.state, targetLocks: record.targetLocks }, summary: "A structural operation is still pending", remedy: pendingOperationRemedy(record) }));
+  return diagnostics;
 }
 
 async function doctorHandler(ctx: CommandContext): Promise<number> {
@@ -38,72 +54,10 @@ async function doctorHandler(ctx: CommandContext): Promise<number> {
     if (grove && subject.grove !== grove.name) return false;
     return true;
   });
+  diagnostics.push(...auditDiagnostics(ws.root, snapshot).slice(snapshot.diagnostics.length));
   const selectors = repository || grove
     ? [{ ...(repository?.registration ? { repositoryId: repository.registration.id, repositoryAlias: repository.registration.name } : {}), ...(grove ? { grove: grove.name } : {}) }]
     : [{ path: ws.root }];
-  // E-9. `scanStaleLocks` existed with a docstring promising "`reconcile` surfaces these so an
-  // orphaned lock that would silently wedge every future mutation is visible instead of
-  // mysterious" — and had ZERO production callers, so the promise was false and the lock stayed
-  // mysterious. Surfacing it here, beside the pending-operation diagnostic, makes the docstring
-  // true. A live same-host holder with a fresh heartbeat is not reported, so an in-progress
-  // mutation is not flagged.
-  for (const finding of scanStaleLocks(locksDir(ws.root))) {
-    if (finding.kind === "orphaned-steal-marker") {
-      diagnostics.push(makeDiagnostic({
-        code: "orphaned-steal-marker",
-        severity: "info",
-        subject: { kind: "lock-steal-marker", path: finding.file },
-        facts: {
-          lock: finding.lock,
-          lockState: finding.lockState,
-          reason: finding.reason,
-          recovery: finding.recovery,
-        },
-        summary: "An orphaned steal marker will be reclaimed automatically by the next successful lock acquisition",
-        remedy: finding.lockState === "held"
-          ? "Wait for or resolve the associated lock holder, then retry the intended Grove mutation; the first successful lock acquisition will remove this marker."
-          : "Retry the intended Grove mutation; the next successful lock acquisition will remove this marker.",
-      }));
-      continue;
-    }
-    const automatic = finding.recovery === "automatic";
-    const reclaimBlocked = automatic && finding.stealMarker === "fresh";
-    diagnostics.push(makeDiagnostic({
-      code: "stale-lock",
-      severity: automatic ? "info" : "policy",
-      subject: { kind: "lock", path: finding.file },
-      facts: {
-        reason: finding.reason,
-        holder: finding.holder,
-        recovery: finding.recovery,
-        ...(finding.stealMarker ? { stealMarker: finding.stealMarker } : {}),
-      },
-      summary: reclaimBlocked
-        ? "A stale lock is waiting for another reclaim attempt"
-        : automatic
-          ? "A stale lock will be reclaimed automatically by the next mutation"
-          : "A lock file requires manual recovery",
-      remedy: reclaimBlocked
-        ? `Another reclaim is in progress or was interrupted. Retry once the steal marker is older than the ${DEFAULT_STALE_MS / 1_000}-second stale window.`
-        : automatic
-          ? "Retry the intended Grove mutation; it will reclaim this lock before proceeding."
-          : "Confirm no Grove process is running against this workspace, then remove the lock file.",
-    }));
-  }
-
-  // E-6. A pending operation holds target locks, so the next mutating command refuses with a
-  // message about an operation the user has no read-only way to discover. Surface it where they
-  // are already looking.
-  for (const record of pendingOperations(ws.root)) {
-    diagnostics.push(makeDiagnostic({
-      code: "pending-operation",
-      severity: "policy",
-      subject: { kind: "operation", operationId: record.id },
-      facts: { kind: record.kind, state: record.state, targetLocks: record.targetLocks },
-      summary: "A structural operation is still pending",
-      remedy: pendingOperationRemedy(record),
-    }));
-  }
   const detail = {
     observedAt: snapshot.completedAt,
     filters: { repository: repository?.registration?.name ?? null, grove: grove?.name ?? null },

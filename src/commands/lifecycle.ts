@@ -21,7 +21,7 @@ import { compileLayout, expandArchivePath, expandGrovePath, expandTreePath, matc
 import { scanTemplateCandidates } from "../config/discovery.ts";
 import { centralGroveManifest } from "../paths/layout.ts";
 import { assertDirectoryContainsOnlyRoots, collectDirectoryMergeRoots, containedPath, inventoryLooseContent, looseEntryLabel, mergeDirectoryForward, moveContainedDirectory, persistedLooseInventory, removeContainedDirectory, removeContainedFile, unaccountedEntries, unconsentedLooseEntries, type LooseInventory } from "../paths/fs.ts";
-import { assertTargetsAvailable, beginOperation, captureDirectoryTarget, recordCompleted, recordPending, recordStepFailure, withOperationTargetLocks } from "../store/operation.ts";
+import { assertTargetsAvailable, beginOperation, captureDirectoryTarget, pendingOperationRemedy, pendingOperations, recordCompleted, recordPending, recordStepFailure, scanOperations, withOperationTargetLocks } from "../store/operation.ts";
 import type { ArchiveRecipe, GroveManifest } from "../model/types.ts";
 import { planLifecycleRemoval } from "../model/plan.ts";
 import { register, type CommandContext } from "./registry.ts";
@@ -58,14 +58,31 @@ function partialResult(command: string, completed: readonly ResultTarget[], fail
   return { ...completeResult(command, [...completed, failing], diagnostics), outcome: "partial" as const, operationId };
 }
 
-async function lifecycleContext(ctx: CommandContext, ref: string | undefined) {
+async function lifecycleContext(ctx: CommandContext, ref: string | undefined, allowAbandonedDelete = false) {
   if (!ref) throw new GroveError({ kind: "invalid-input", what: "a Grove is required", why: "no <grove> was given", remedy: "Run `grove ls`, then pass one exact Grove name or id." });
   const ws = requireWorkspace({ cwd: ctx.cwd, workspace: ctx.globals.workspace });
   const g = git();
   const snapshot = await observeWorkspace(ws, g);
   const matches = snapshot.groves.filter((candidate) => candidate.name === ref || candidate.metadata?.manifest.id === ref);
-  if (matches.length !== 1) throw new GroveError({ kind: "invalid-input", what: `No unique Grove "${ref}"`, why: `${matches.length} observed/advisory Groves match`, remedy: "Run `grove ls`." });
-  return { ws, g, snapshot, grove: matches[0]! };
+  if (matches.length !== 1) {
+    if (allowAbandonedDelete && matches.length === 0) {
+      const path = resolveLayoutTarget(snapshot.layout, expandGrovePath(snapshot.layout, ref));
+      if (existsSync(path) && !existsSync(centralGroveManifest(ws.root, ref))) {
+        const current = captureDirectoryTarget(ws.root, "grove-content", { grove: ref }, path);
+        const abandonedDelete = scanOperations(ws.root).records.reverse().find((record) => {
+          if (record.kind !== "grove-delete" || record.state !== "abandoned" || record.scope.grove !== ref) return false;
+          const content = record.steps.find((step) => step.kind === "directory-remove");
+          const input = content?.input as { path?: unknown; targetIdentity?: { device?: unknown; inode?: unknown; expectedPresent?: unknown } } | undefined;
+          return input?.path === path && input.targetIdentity?.expectedPresent === true && input.targetIdentity.device === current.device && input.targetIdentity.inode === current.inode;
+        });
+        if (abandonedDelete) return { ws, g, snapshot, grove: { name: ref, trees: [], metadata: null }, abandonedDelete };
+      }
+    }
+    const pending = matches.length === 0 ? pendingOperations(ws.root).find((record) => record.scope.grove === ref || record.scope.newName === ref) : null;
+    if (pending) throw new GroveError({ kind: "refused-conflict", what: `Grove "${ref}" has a pending operation`, why: `operation ${pending.id} (${pending.kind}, ${pending.state}) owns the target`, remedy: pendingOperationRemedy(pending), detail: { operationId: pending.id, kind: pending.kind, state: pending.state } });
+    throw new GroveError({ kind: "invalid-input", what: `No unique Grove "${ref}"`, why: `${matches.length} observed/advisory Groves match`, remedy: "Run `grove ls`." });
+  }
+  return { ws, g, snapshot, grove: matches[0]!, abandonedDelete: null };
 }
 
 function groveManifest(grove: Awaited<ReturnType<typeof lifecycleContext>>["grove"]): GroveManifest {
@@ -505,7 +522,13 @@ async function restoreHandler(ctx: CommandContext): Promise<number> {
         recordCompleted(operation, `restore-${index}`, { path, branch, headOid: oid });
       }
       recordPending(operation, "restore-metadata", { revision: grove.metadata?.meta.rev ?? null, state: manifest.state });
-      const meta = await saveGroveManifest(ws.root, { ...manifest, state: "active", archiveSnapshot: null }, grove.metadata?.meta);
+      let meta: Awaited<ReturnType<typeof saveGroveManifest>>;
+      try { meta = await saveGroveManifest(ws.root, { ...manifest, state: "active", archiveSnapshot: null }, grove.metadata?.meta); }
+      catch (error) {
+        const why = String((error as Error).message ?? error);
+        recordStepFailure(operation, "restore-metadata", "recoverable-intermediate", stepFailureReason(error), { error: why });
+        throw new GroveError({ kind: "io", what: `Restore metadata for ${grove.name} was not saved`, why, remedy: `Correct the cause, then run \`grove reconcile --operation ${operation.id}\` to finish the restore.`, detail: { operationId: operation.id } });
+      }
       recordCompleted(operation, "restore-metadata", { revision: meta.rev, state: "active" });
       const detached = rebound.filter((entry) => entry.detach && entry.branch !== null).map((entry) => ({ tree: entry.recipe.selector.tree, branch: entry.branch, archivedOid: entry.oid, branchNowAt: entry.movedFrom }));
       const after = { grove: grove.name, state: "active", trees: recipes.length, restoredAt: latest ? "branch-tip" : "archived-commit", detached };
@@ -566,7 +589,28 @@ function assertCompleteLooseInventory(inventory: LooseInventory, what: string): 
 async function deleteHandler(ctx: CommandContext): Promise<number> {
   const parsed = parseCommand(ctx);
   {
-    const { ws, g, snapshot, grove } = await lifecycleContext(ctx, parsed.positionals[0]);
+    const { ws, g, snapshot, grove, abandonedDelete } = await lifecycleContext(ctx, parsed.positionals[0], true);
+    if (abandonedDelete) {
+      const path = resolveLayoutTarget(snapshot.layout, expandGrovePath(snapshot.layout, grove.name));
+      const scaffoldOnly = () => {
+        const structuralDirectories = structuralTreeSlotPaths(snapshot.layout, grove.name, snapshot.repositories.flatMap((repository) => repository.registration ? [repository.registration.name] : []));
+        const inventory = inventoryLooseContent(path, [], { structuralDirectories });
+        return inventory.entries.length === 0 && inventory.incomplete.length === 0;
+      };
+      if (scaffoldOnly()) {
+        return withOperationTargetLocks(ws.root, [`grove:${grove.name}`], "delete-abandoned-scaffold", async () => {
+          assertTargetsAvailable(ws.root, [`grove:${grove.name}`]);
+          const content = abandonedDelete.steps.find((step) => step.kind === "directory-remove");
+          const input = content?.input as { targetIdentity?: { device?: unknown; inode?: unknown } } | undefined;
+          const current = captureDirectoryTarget(ws.root, "grove-content", { grove: grove.name }, path);
+          if (current.device !== input?.targetIdentity?.device || current.inode !== input.targetIdentity.inode) throw new GroveError({ kind: "refused-conflict", what: `Cannot finish delete ${grove.name}`, why: "the Grove directory was replaced after the abandoned operation", remedy: "Inspect the current directory before retrying." });
+          if (!scaffoldOnly()) throw new GroveError({ kind: "refused-conflict", what: `Cannot finish delete ${grove.name}`, why: "new content appeared", remedy: "Retry from fresh observed state." });
+          removeContainedDirectory(containedPath(ws.root, path, `Cannot finish delete ${grove.name}`));
+          const after = { grove: grove.name, deleted: true, refsRetained: true, abandonedOperationId: abandonedDelete.id };
+          return ctx.emit.result(completeResult("delete", [{ selector: { grove: grove.name, path }, before: { abandonedOperationId: abandonedDelete.id }, action: "remove-empty-scaffold", after, reason: null }], snapshot.diagnostics, after), 0);
+        });
+      }
+    }
     const manifest = groveManifest(grove);
     const recordedContent = manifest.state === "archived" && typeof manifest.archiveSnapshot?.looseContentPath === "string" ? manifest.archiveSnapshot.looseContentPath : null;
     // `archiveSnapshot.looseContentPath` is ADVISORY metadata — the constitution explicitly invites
@@ -833,7 +877,13 @@ async function renameHandler(ctx: CommandContext): Promise<number> {
       recordCompleted(operation, "move-content", { path: newRoot });
       recordPending(operation, "rename-metadata", { revision: grove.metadata?.meta.rev ?? null, oldName: grove.name, newName });
       const next = { ...manifest, name: newName, archiveSnapshot: manifest.archiveSnapshot ? { ...manifest.archiveSnapshot, looseContentPath: manifest.archiveSnapshot.looseContentPath ? newRoot : null } : null };
-      const meta = await saveGroveManifest(ws.root, next);
+      let meta: Awaited<ReturnType<typeof saveGroveManifest>>;
+      try { meta = await saveGroveManifest(ws.root, next); }
+      catch (error) {
+        const why = String((error as Error).message ?? error);
+        recordStepFailure(operation, "rename-metadata", "recoverable-intermediate", stepFailureReason(error), { error: why });
+        throw new GroveError({ kind: "io", what: `Rename metadata for ${grove.name} was not saved`, why, remedy: `Correct the cause, then run \`grove reconcile --operation ${operation.id}\` to finish the rename.`, detail: { operationId: operation.id } });
+      }
       if (grove.metadata && grove.name !== newName && existsSync(centralGroveManifest(ws.root, grove.name))) removeContainedFile(containedPath(ws.root, centralGroveManifest(ws.root, grove.name), `Cannot rename ${grove.name} metadata`));
       recordCompleted(operation, "rename-metadata", { revision: meta.rev, name: newName });
       const after = { id: next.id, name: newName, from: grove.name, state: next.state, path: newRoot };

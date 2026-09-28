@@ -96,7 +96,13 @@ async function newGrove(ctx: CommandContext, name: string, repoRefs: string[], b
       recordPending(operation, "publish-metadata", { metadataAbsent: true, pathAbsent: !existsSync(path) });
       resolveLayoutTarget(snapshot.layout, path);
       mkdirSync(path, { recursive: true });
-      const meta = await saveGroveManifest(ws.root, newGroveManifest(name));
+      let meta: Awaited<ReturnType<typeof saveGroveManifest>>;
+      try { meta = await saveGroveManifest(ws.root, newGroveManifest(name)); }
+      catch (error) {
+        const why = String((error as Error).message ?? error);
+        recordStepFailure(operation, "publish-metadata", "recoverable-intermediate", "io-failed", { error: why });
+        throw new GroveError({ kind: "io", what: `New Grove metadata for ${name} was not saved`, why, remedy: `Correct the cause, then run \`grove reconcile --operation ${operation.id}\` to finish creation.`, detail: { operationId: operation.id } });
+      }
       recordCompleted(operation, "publish-metadata", { revision: meta.rev, path });
       const after = { grove: name, path, trees: 0, revision: meta.rev };
       const result = { ...completeResult("new", [{ selector: { grove: name, path }, before: null, action: "create-empty-grove", after, reason: null }], snapshot.diagnostics, after), operationId: operation.id };

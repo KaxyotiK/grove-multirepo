@@ -375,4 +375,12 @@ This phase closes the PR review's demonstrated output-conformance bug without ad
 
 - [x] T-ALY-1 Record FR-029A/FR-036A and V3ALY-01..04 contracts, then add built-artifact behavior tests and capture their red baseline — TRACE-ARCHIVE-LAYOUT.
 - [x] T-ALY-2 Fix archive refusal/itemization, duplicate fix destinations, case-sensitive slot ownership, and structural empty-slot inventory while preserving wrapper projection files — TRACE-ARCHIVE-LAYOUT; depends on T-ALY-1.
-- [ ] T-ALY-3 Verify focused suites and the exact full local gate, rebase after recovery, and record passing test evidence — TRACE-ARCHIVE-LAYOUT; depends on T-ALY-2.
+- [ ] T-ALY-3 Verify focused suites and the exact full local gate, merge recovery before delivery, and record passing test evidence — TRACE-ARCHIVE-LAYOUT; depends on T-ALY-2.
+
+## Phase 14: Interrupted-operation recovery correction
+
+- [x] T118 [US7] Specify FR-052 and V3RCV-01–04 in `spec.md` and `contracts/cli-surface-v3.md` and append acceptance rows in `contracts/acceptance-scenarios-v3.md`.
+- [x] T119 [US7] Analyze consistency of `spec.md`, `plan.md`, and `tasks.md` against constitution IV/V before implementation.
+- [x] T120 [US7] Add failing V3RCV witnesses in `tests/cli/recovery-v3.test.ts` for diagnostic parity, metadata-free delete, lifecycle remedies, and independent interrupted acquisitions.
+- [x] T121 [US7] Implement shared audit and recovery corrections in `src/commands/doctor.ts`, `src/commands/reconcile.ts`, and the recovery helper and paths of `src/commands/lifecycle.ts`.
+- [x] T122 [US7] Run focused tests and the full local gate, append passing witnesses to `traceability.md`, and record user-visible corrections in `CHANGELOG.md`.
