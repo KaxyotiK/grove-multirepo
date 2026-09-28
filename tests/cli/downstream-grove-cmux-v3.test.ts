@@ -16,8 +16,9 @@ after(cleanupTempDirs);
 const git = (cwd: string, args: string[]): string => execFileSync("git", args, { cwd, encoding: "utf8" }).trim();
 
 /** The harness's setup sequence: init by path, then repo add and new --all through --workspace. */
-function seeded(): { fx: Fixture; tree: string } {
-  const fx = makeFixture();
+function seeded(remoteHead = "main"): { fx: Fixture; tree: string } {
+  const fx = makeFixture({ repos: { alpha: remoteHead === "main" ? [] : [remoteHead] } });
+  if (remoteHead !== "main") git(fx.repos[0]!.origin, ["symbolic-ref", "HEAD", `refs/heads/${remoteHead}`]);
   const init = fx.grove(["init", fx.root, "--name", "work"], { cwd: dirname(fx.root) });
   assert.equal(init.status, 0, init.stderr);
   const added = fx.grove(["--workspace", fx.root, "repo", "add", fx.repos[0]!.origin, "--name", "alpha"], { cwd: dirname(fx.root) });
@@ -31,7 +32,7 @@ test("V3DWN-01: grove --json new prints one schema-1 value with outcome complete
   const fx = makeFixture();
   assert.equal(fx.grove(["init"]).status, 0);
   assert.equal(fx.grove(["repo", "add", fx.repos[0]!.origin, "--name", "alpha"]).status, 0);
-  for (const [name, selection] of [["spaced", ["--repo", "alpha"]], ["joined", ["--repo=alpha"]]] as const) {
+  for (const [name, selection] of [["spaced", ["--repo", "alpha"]], ["joined", ["--repo=alpha"]], ["every", ["--all"]]] as const) {
     const run = fx.grove(["--json", "new", name, ...selection]);
     assert.equal(run.status, 0, run.stderr);
     const value = JSON.parse(run.stdout);
@@ -55,6 +56,10 @@ test("V3DWN-02: grove --json agent ls reports a top-level agents array with name
   const fake = agents.find((agent) => agent.name === "fake");
   assert.ok(fake, "the added agent is listed by name");
   assert.equal(fake.available, true);
+  assert.equal(fx.grove(["agent", "add", "ghost", join(fx.home, "no-such-agent")]).status, 0);
+  const missing = (JSON.parse(fx.grove(["--json", "agent", "ls"], { cwd: tree }).stdout).agents as { name: unknown; available: unknown }[]).find((agent) => agent.name === "ghost");
+  assert.ok(missing, "an agent whose command is missing is still listed");
+  assert.equal(missing.available, false);
 });
 
 test("V3DWN-03: grove agent run <grove> --tree <grove>@<repo> runs in the foreground in that Tree and forwards arguments verbatim", () => {
@@ -75,13 +80,13 @@ test("V3DWN-04: the default layout puts each Tree at groves/<grove>/trees/<grove
   assert.equal(realpathSync(git(tree, ["rev-parse", "--show-toplevel"])), realpathSync(tree));
   assert.equal(fx.grove(["archive", "g"]).status, 0);
   assert.equal(existsSync(join(fx.root, "archives", "g")), true);
-  assert.equal(existsSync(tree), false);
 });
 
 test("V3DWN-05: init by path, repo add through --workspace with the remote HEAD as trunk, and new --all through --workspace build the harness fixture", () => {
-  const { fx, tree } = seeded();
-  assert.equal(existsSync(join(fx.root, "trunks", "main@alpha", ".git")), true);
-  assert.equal(git(tree, ["branch", "--show-current"]), "g");
+  const { fx, tree } = seeded("dev");
+  assert.equal(existsSync(join(fx.root, "trunks", "dev@alpha", ".git")), true, "the trunk follows the remote HEAD, not a fixed main");
+  assert.equal(existsSync(join(fx.root, "trunks", "main@alpha")), false);
+  assert.equal(realpathSync(git(tree, ["rev-parse", "--show-toplevel"])), realpathSync(tree));
 });
 
 test("V3DWN-06: grove agent add <name> <command> is shown by human grove agent ls as a Name: line", () => {
@@ -101,10 +106,12 @@ test("V3DWN-07: plain grove delete refuses with exit 5 while .grove-cmux/ exists
   assert.equal(withFile.status, 5, withFile.stdout + withFile.stderr);
   assert.match(withFile.stdout + withFile.stderr, /refused-precondition/);
   assert.match(withFile.stdout + withFile.stderr, /\.grove-cmux\/projection\.json/);
+  assert.match(withFile.stdout + withFile.stderr, /loose Grove content/);
   rmSync(join(projection, "projection.json"));
   const emptyDirectory = fx.grove(["delete", "g"]);
   assert.equal(emptyDirectory.status, 5, emptyDirectory.stdout + emptyDirectory.stderr);
-  assert.match(emptyDirectory.stdout + emptyDirectory.stderr, /\.grove-cmux\//);
+  assert.match(emptyDirectory.stdout + emptyDirectory.stderr, /refused-precondition/);
+  assert.match(emptyDirectory.stdout + emptyDirectory.stderr, /loose Grove content would be removed: \.grove-cmux\//);
   const forced = fx.grove(["delete", "g", "--allow-destructive-all"]);
   assert.equal(forced.status, 0, forced.stdout + forced.stderr);
   assert.equal(existsSync(join(fx.root, "groves", "g")), false);
