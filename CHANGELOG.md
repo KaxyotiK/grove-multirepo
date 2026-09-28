@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0
+## 0.1.0
 
 First public release, published to npm as `grove-multirepo`. The command is `grove`. Requires macOS, Node 24 or newer, and Git.
 
