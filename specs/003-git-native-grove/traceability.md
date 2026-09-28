@@ -84,3 +84,12 @@ The proposal section 8 table is exhaustive. These rows bind implementation owner
 | Foreign-schema refusal | every command refuses during schema loading; there is no `migrate` command | 7 |
 | Unchanged metadata/process | `agent add/ls/remove`, foreground agent execution contract, `completion` mechanism | 2–8 regression gates |
 | Removed | `repo delete-branch`; native Git is the replacement | 6 and 8 |
+
+## Recovery correction (FR-052)
+
+| Scenario | Plan/task | Passing witness |
+|---|---|---|
+| V3RCV-01 | Recovery correction / T120–T122 | `tests/cli/recovery-v3.test.ts`: doctor and audit-only diagnostic identity equality |
+| V3RCV-02 | Recovery correction / T120–T122 | `tests/cli/recovery-v3.test.ts`: metadata-free delete resume and safe explicit empty-scaffold cleanup |
+| V3RCV-03 | Recovery correction / T120–T122 | `tests/cli/recovery-v3.test.ts`: pending archive retry and failed new metadata write remedies |
+| V3RCV-04 | Recovery correction / T120–T122 | `tests/cli/recovery-v3.test.ts`: two independent interrupted acquisitions complete together |

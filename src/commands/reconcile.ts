@@ -20,10 +20,11 @@ import type { GroveManifest } from "../model/types.ts";
 import { assertDirectoryContainsOnlyRoots, containedParentPath, containedPath, isStrictSubpath, isSubpath, mergeDirectoryForward, moveContainedDirectory, removeContainedDirectory, removeContainedFile, removeContainedSymbolicLink, inventoryLooseContent, looseEntryLabel, readRecordedLooseConsent, unaccountedEntries, unconsentedLooseEntries } from "../paths/fs.ts";
 import { parseCommand } from "./args.ts";
 import { compileLayout, expandArchivePath, expandGrovePath, expandRepositoryPath, expandTreePath, matchLayoutPath, resolveLayoutTarget } from "../config/layout.ts";
-import { isValidTrunkAllocation, nativePathFromBytes } from "../model/encoding.ts";
+import { caseFoldKey, isValidTrunkAllocation, nativePathFromBytes } from "../model/encoding.ts";
 import { checkRemoteCredentials, checkRemoteName } from "../model/validate.ts";
 import { centralGroveManifest } from "../paths/layout.ts";
 import { isGitDirectory } from "./files.ts";
+import { auditDiagnostics } from "./doctor.ts";
 import { captureAcquisitionRemoteProof, isStandardAcquisitionPath, isStandardBareInitScaffold, matchesAcquisitionAnchorProof, matchesAcquisitionGenesis } from "../store/acquisition-anchor.ts";
 
 function stepInput(step: OperationStep): Record<string, unknown> {
@@ -457,8 +458,10 @@ async function resumeOperation(root: string, record: OperationRecord, git: Git):
       const workspace = loadWorkspaceAt(root);
       const snapshot = await observeWorkspace(workspace, git);
       const metadata = loadCentralGroveMetadata(root, identitySelector.grove);
-      if (!metadata) { recordStepFailure(record, step.id, "conflicted", "stale-plan", { metadataMissing: true }); return { id: record.id, state: record.state, completed, problem: "stale-plan" }; }
-      const expectedPath = resolveLayoutTarget(snapshot.layout, metadata.manifest.state === "archived" ? expandArchivePath(snapshot.layout, identitySelector.grove) : expandGrovePath(snapshot.layout, identitySelector.grove));
+      const metadataStep = record.steps.find((candidate) => candidate.kind === "central-metadata-remove");
+      const recordedMetadataIdentity = metadataStep && typeof stepInput(metadataStep).targetIdentity === "object" ? stepInput(metadataStep).targetIdentity as { expectedPresent?: unknown } : null;
+      if (!metadata && (record.kind !== "grove-delete" || recordedMetadataIdentity?.expectedPresent !== false)) { recordStepFailure(record, step.id, "conflicted", "stale-plan", { metadataMissing: true }); return { id: record.id, state: record.state, completed, problem: "stale-plan" }; }
+      const expectedPath = resolveLayoutTarget(snapshot.layout, metadata?.manifest.state === "archived" ? expandArchivePath(snapshot.layout, identitySelector.grove) : expandGrovePath(snapshot.layout, identitySelector.grove));
       const currentRelative = relative(resolve(root), resolve(expectedPath));
       const currentPresent = existsSync(expectedPath);
       const currentCanonical = currentPresent ? realpathSync(expectedPath) : resolve(expectedPath);
@@ -852,20 +855,30 @@ async function resumeOperation(root: string, record: OperationRecord, git: Git):
     }
     if (step.kind === "workspace-config-update" && record.kind === "repo-add") {
       const workspace = loadWorkspaceAt(root);
-      const existing = workspace.config.repositories.find((repo) => repo.id === record.scope.repositoryId);
-      if (existing) { ensurePending(record, step, step.preState ?? { observedAfterCrash: true }); recordCompleted(record, step.id, { repositoryId: existing.id, observedAfterCrash: true }); completed.push(step.id); continue; }
       const initial = record.steps.find((candidate) => candidate.kind === "repository-init-bare");
       const trunkStep = record.steps.find((candidate) => candidate.kind === "worktree-add" && candidate.id === "initial-trunk");
       const destination = initial ? stepInput(initial).anchor : null;
       const trunk = initial ? stepInput(initial).trunk : null;
       const trunkPath = trunkStep ? stepInput(trunkStep).path : null;
       const expectedRevision = input.expectedRevision;
-      if (typeof destination !== "string" || typeof trunk !== "string" || typeof trunkPath !== "string" || !Number.isSafeInteger(expectedRevision) || workspace.meta.rev !== expectedRevision || !existsSync(destination) || !existsSync(trunkPath)) { recordStepFailure(record, step.id, "conflicted", "stale-plan"); return { id: record.id, state: record.state, completed, problem: "stale-plan" }; }
+      const alias = record.scope.repositoryAlias;
+      const repositoryId = record.scope.repositoryId;
+      const layout = compileLayout(root, workspace.config.layout);
+      const trunkMatch = typeof trunkPath === "string" ? matchLayoutPath(layout, trunkPath) : null;
+      if (typeof alias !== "string" || typeof repositoryId !== "string" || typeof destination !== "string" || typeof trunk !== "string" || typeof trunkPath !== "string" || !Number.isSafeInteger(expectedRevision) || expandRepositoryPath(layout, alias) !== destination || trunkMatch?.role !== "trunk" || !existsSync(destination) || !existsSync(trunkPath)) { recordStepFailure(record, step.id, "conflicted", "stale-plan"); return { id: record.id, state: record.state, completed, problem: "stale-plan" }; }
       const bare = await git.tryRun(destination, ["rev-parse", "--is-bare-repository"]);
       const trunkIdentity = await git.inspectRepository(trunkPath).catch(() => null);
       const anchorIdentity = await git.inspectRepository(destination).catch(() => null);
       if (bare.stdout.trim() !== "true" || !trunkIdentity || !anchorIdentity || trunkIdentity.commonGitDir.canonicalUtf8 !== anchorIdentity.commonGitDir.canonicalUtf8) { recordStepFailure(record, step.id, "conflicted", "stale-plan"); return { id: record.id, state: record.state, completed, problem: "stale-plan" }; }
-      const registration: RepositoryEntry = { id: record.scope.repositoryId as string, name: record.scope.repositoryAlias as string, location: { kind: "managed" }, remote: "origin", trunk };
+      const observed = await observeWorkspace(workspace, git);
+      const conflicting = workspace.config.repositories.find((repo) => repo.id !== repositoryId && (caseFoldKey(repo.name) === caseFoldKey(alias) || (repo.location.kind === "managed" && expandRepositoryPath(layout, repo.name) === destination))) ?? observed.repositories.find((repo) => repo.registration?.id !== repositoryId && repo.worktrees.some((worktree) => worktree.path.utf8 === trunkPath))?.registration;
+      if (conflicting) { recordStepFailure(record, step.id, "conflicted", "stale-plan", { conflictingRepositoryId: conflicting.id }); return { id: record.id, state: record.state, completed, problem: "stale-plan" }; }
+      const existing = workspace.config.repositories.find((repo) => repo.id === repositoryId);
+      if (existing) {
+        if (existing.location.kind !== "managed" || existing.name !== alias || existing.trunk !== trunk) { recordStepFailure(record, step.id, "conflicted", "stale-plan", { registrationChanged: true }); return { id: record.id, state: record.state, completed, problem: "stale-plan" }; }
+        ensurePending(record, step, step.preState ?? { observedAfterCrash: true }); recordCompleted(record, step.id, { repositoryId: existing.id, observedAfterCrash: true }); completed.push(step.id); continue;
+      }
+      const registration: RepositoryEntry = { id: repositoryId, name: alias, location: { kind: "managed" }, remote: "origin", trunk };
       ensurePending(record, step, step.preState ?? { revision: workspace.meta.rev, repositoryAbsent: true });
       const meta = await saveWorkspace(workspace, { ...workspace.config, repositories: [...workspace.config.repositories, registration] });
       recordCompleted(record, step.id, { revision: meta.rev, repositoryId: registration.id, resumed: true }); completed.push(step.id); continue;
@@ -1044,7 +1057,7 @@ async function reconcileHandler(ctx: CommandContext): Promise<number> {
   const operationScan = scanOperations(ws.root);
   const detail = { observedAt: snapshot.completedAt, auditOnly: parsed.values["audit-only"], resumed, abandoned, removedAnchors, retainedAnchors, survivingArtifacts, ...(retainedAnchors.length ? { remedy: "Inspect and move each retained repository anchor with native Git or the filesystem before reusing its path for a new acquisition." } : {}), operationErrors: operationScan.errors };
   const recoveryTargets = resumed.map((recovery) => ({ selector: { path: ws.root }, before: { operationId: recovery.id }, action: "resume-operation", after: recovery, reason: recovery.problem, ...(recovery.detail ? { detail: recovery.detail } : {}) }));
-  const result = { ...completeResult("reconcile", recoveryTargets.length ? recoveryTargets : [{ selector: { path: ws.root }, before: null, action: "audit", after: detail, reason: null }], snapshot.diagnostics, detail), outcome: resumed.some((recovery) => recovery.problem) ? "partial" as const : "complete" as const };
+  const result = { ...completeResult("reconcile", recoveryTargets.length ? recoveryTargets : [{ selector: { path: ws.root }, before: null, action: "audit", after: detail, reason: null }], auditDiagnostics(ws.root, snapshot), detail), outcome: resumed.some((recovery) => recovery.problem) ? "partial" as const : "complete" as const };
   return ctx.emit.result(result, commandResultExit(result));
 }
 
