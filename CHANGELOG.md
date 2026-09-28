@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Archive refuses and itemizes Tree-position content when a repository cannot be inspected, leaving worktree registrations and files in place.
+- Empty Tree layout slots no longer require destructive consent for Grove deletion; ordinary files in those slots remain protected.
+- `fix --move` refuses colliding destinations before any move or operation record, and repairs case-variant owner slots on case-sensitive volumes.
+
 ## 0.1.0
 
 First public release, published to npm as `grove-multirepo`. The command is `grove`. Requires macOS, Node 24 or newer, and Git.

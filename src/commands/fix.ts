@@ -29,6 +29,11 @@ async function fixHandler(ctx: CommandContext): Promise<number> {
   if (parsed.values.diagnostic && diagnostics.length !== 1) throw new GroveError({ kind: "refused-conflict", what: `Diagnostic ${parsed.values.diagnostic} is stale or ambiguous`, why: `${diagnostics.length} current move diagnostics match`, remedy: "Run `grove doctor` and select one current diagnostic id." });
   const plans = diagnostics.map(planMove).filter((plan): plan is NonNullable<ReturnType<typeof planMove>> => plan !== null);
   if (plans.length === 0) throw new GroveError({ kind: "refused-precondition", what: "No safe worktree moves are available", why: "the current filters match no uniquely planned misplaced diagnostic", remedy: "Run `grove doctor` or adjust the filters." });
+  const destinations = new Set<string>();
+  for (const plan of plans) {
+    if (destinations.has(plan.to)) throw new GroveError({ kind: "refused-conflict", what: `Cannot move two worktrees to ${plan.to}`, why: "selected repairs have the same destination", remedy: "Choose one current diagnostic with --diagnostic, or move one worktree with Git and rescan." });
+    destinations.add(plan.to);
+  }
   for (const plan of plans) if (existsSync(plan.to)) throw new GroveError({ kind: "refused-conflict", what: `Cannot move worktree to ${plan.to}`, why: "the exact destination is occupied", remedy: "Move the conflicting path and rerun doctor." });
   const previewTargets = plans.map((plan) => ({ selector: { path: plan.from, ...(subject(diagnostics.find((diagnostic) => diagnostic.id === plan.diagnosticId) as Diagnostic).grove ? { grove: String(subject(diagnostics.find((diagnostic) => diagnostic.id === plan.diagnosticId) as Diagnostic).grove) } : {}) }, before: { path: plan.from, diagnosticId: plan.diagnosticId }, action: "move-worktree", after: { path: plan.to }, reason: null }));
   if (parsed.values["dry-run"]) return ctx.emit.result(completeResult("fix --move", previewTargets, diagnostics, { dryRun: true, moves: plans }), 0);

@@ -167,3 +167,8 @@ Human and JSON modes MUST carry the **same meaningful facts** without requiring 
 ### ⑧ `specs/001-grove-cli` is closed to new behaviour
 
 It remains the stable `§` citation authority and the home of the 180 regression scenario IDs, and is never renumbered or deleted. No new behaviour is written there; this directory supersedes it wherever the two disagree. See `specs/001-grove-cli/contracts/README.md` and `specs/README.md`.
+
+### Archive and layout repair corrections (V3ALY)
+
+- Before archive moves a Grove directory, every registered repository that could own a Tree in that Grove must be observable. If repository inspection fails, archive refuses without a durable operation or filesystem mutation and itemizes the Tree-position paths and content at risk. A failed repository inspection never proves that the Grove has zero Trees (`V3ALY-01`).
+- `fix --move` refuses a selected set containing two moves to one destination before creating a durable operation, including in dry-run mode (`V3ALY-03`).

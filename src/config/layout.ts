@@ -1,7 +1,8 @@
 import { isAbsolute, resolve, sep } from "node:path";
 import { GroveError } from "../errors.ts";
 import { resolveContained } from "../paths/fs.ts";
-import { assertGroveName, assertRepoName, assertTreeName } from "../model/validate.ts";
+import { scanTemplateCandidates } from "./discovery.ts";
+import { assertGroveName, assertRepoName, assertTreeName, checkRepoName } from "../model/validate.ts";
 
 export interface LayoutConfig {
   repositories: string;
@@ -178,6 +179,21 @@ export function expandTreePath(layout: CompiledLayout, grove: string, tree: stri
   assertTreeName(tree);
   assertRepoName(repo);
   return expand(layout, "trees", { grove, tree, repo });
+}
+
+/** Existing empty ancestors of Tree allocations that carry layout structure, not loose content. */
+export function structuralTreeSlotPaths(layout: CompiledLayout, grove: string, repositoryNames: readonly string[]): string[] {
+  assertGroveName(grove);
+  const segments = layout.config.trees.split("/");
+  const treeIndex = segments.indexOf("{tree}");
+  const prefix = segments.slice(0, treeIndex);
+  const repositories = prefix.includes("{repo}") ? repositoryNames : [""];
+  const registered = repositories.map((repo) => resolve(layout.workspaceRoot, ...prefix.map((segment) => segment === "{grove}" ? grove : segment === "{repo}" ? repo : segment)));
+  const repoIndex = prefix.indexOf("{repo}");
+  const existing = scanTemplateCandidates(layout.workspaceRoot, prefix.join("/"))
+    .filter((path) => path === expandGrovePath(layout, grove) || path.startsWith(`${expandGrovePath(layout, grove)}${sep}`))
+    .filter((path) => repoIndex < 0 || checkRepoName(path.slice(layout.workspaceRoot.length + 1).split(sep)[repoIndex] ?? "") === null);
+  return [...new Set([...registered, ...existing])].sort();
 }
 
 export function resolveLayoutTarget(layout: CompiledLayout, expandedPath: string): string {

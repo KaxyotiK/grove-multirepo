@@ -370,3 +370,9 @@ This phase closes the PR review's demonstrated output-conformance bug without ad
 - [x] T115 [US7] Review scope and quality, record exact green witnesses and the commit in `specs/003-git-native-grove/reviews/help-human-formatting-20260824.md`, and commit the complete change on `fix/help-human-formatting` without merge or push — FR-049A-C, FR-051A-B, 003-git-native-grove-SC-018; TRACE-HELP-PRESENT
 - [x] T116 [US7] Add adversarial regression witnesses for globals-anywhere JSON help, boolean-option help dispatch, real 80-column registry title/usage wrapping, and handler exclusion from the help-only emitter path — FR-033B-D, 003-git-native-grove-SC-017-SC-018; TRACE-HELP-PRESENT
 - [x] T117 [US7] Implement canonical two-precision help dispatch, controlled title/usage wrapping, handler-facing emitter isolation, and verify the ART-05 ledger's whitespace-canonical evidence; then rerun focused and full gates and update the PR — FR-033B-D, FR-049A-C, FR-051A-B, 003-git-native-grove-SC-013-SC-018; TRACE-HELP-PRESENT
+
+## Archive and layout repair lane (V3ALY)
+
+- [x] T-ALY-1 Record FR-029A/FR-036A and V3ALY-01..04 contracts, then add built-artifact behavior tests and capture their red baseline — TRACE-ARCHIVE-LAYOUT.
+- [x] T-ALY-2 Fix archive refusal/itemization, duplicate fix destinations, case-sensitive slot ownership, and structural empty-slot inventory while preserving wrapper projection files — TRACE-ARCHIVE-LAYOUT; depends on T-ALY-1.
+- [ ] T-ALY-3 Verify focused suites and the exact full local gate, rebase after recovery, and record passing test evidence — TRACE-ARCHIVE-LAYOUT; depends on T-ALY-2.

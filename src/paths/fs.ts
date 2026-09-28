@@ -321,6 +321,7 @@ export interface LooseInventoryOptions {
    * path present again at an accounted position is new loose content and is inventoried.
    */
   accountedPresent?: "exempt" | "inventory";
+  structuralDirectories?: readonly string[];
   maxEntries?: number;
   maxDepth?: number;
 }
@@ -355,6 +356,7 @@ export function inventoryLooseContent(root: string, accounted: readonly string[]
   const maxDepth = options.maxDepth ?? LOOSE_INVENTORY_LIMITS.maxDepth;
   const canonical = accounted.map((path) => resolve(path));
   const exact = new Set(canonical);
+  const structuralPaths = (options.structuralDirectories ?? []).map((path) => resolve(path));
   const entries: Array<LooseEntry & { raw: Buffer }> = [];
   const incomplete: LooseInventoryGap[] = [];
   const relativeJoin = (parent: Buffer, name: Buffer): Buffer => parent.length ? Buffer.concat([parent, Buffer.from("/"), name]) : name;
@@ -396,7 +398,7 @@ export function inventoryLooseContent(root: string, accounted: readonly string[]
         const nativeChild = nativePathFromBytes(child).utf8;
         const childPath = nativeChild === null ? null : resolve(nativeChild);
         if (childPath !== null && exact.has(childPath) && accountedPresent === "exempt") continue;
-        if (childPath !== null && !exact.has(childPath) && realDirectory && canonical.some((path) => isStrictSubpath(childPath, path))) {
+        if (childPath !== null && !exact.has(childPath) && realDirectory && (canonical.some((path) => isStrictSubpath(childPath, path)) || structuralPaths.some((path) => childPath === path || isStrictSubpath(childPath, path)))) {
           if (depth + 1 > maxDepth) { gap(relativeChild, `deeper than ${maxDepth} levels`); continue; }
           visit(child, relativeChild, depth + 1, true);
           continue;

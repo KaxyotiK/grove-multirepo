@@ -6,6 +6,7 @@
  * Git ref; explicit branch deletion remains a native Git action.
  */
 import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import type { Dirent } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { GroveError } from "../errors.ts";
 import { Git, createGitRunner } from "../git/adapter.ts";
@@ -16,7 +17,7 @@ import { requireWorkspace } from "../config/workspace.ts";
 import { newGroveManifest, saveGroveManifest } from "../config/grove.ts";
 import { assertDestructiveMutationPath, assertWorktreeMutationPath, observeWorkspace } from "../model/observed.ts";
 import { commandResultExit, completeResult, type ResultTarget } from "../model/result.ts";
-import { compileLayout, expandArchivePath, expandGrovePath, expandTreePath, resolveLayoutTarget } from "../config/layout.ts";
+import { compileLayout, expandArchivePath, expandGrovePath, expandTreePath, resolveLayoutTarget, structuralTreeSlotPaths } from "../config/layout.ts";
 import { centralGroveManifest } from "../paths/layout.ts";
 import { assertDirectoryContainsOnlyRoots, collectDirectoryMergeRoots, containedPath, inventoryLooseContent, looseEntryLabel, mergeDirectoryForward, moveContainedDirectory, persistedLooseInventory, removeContainedDirectory, removeContainedFile, unaccountedEntries, unconsentedLooseEntries, type LooseInventory } from "../paths/fs.ts";
 import { assertTargetsAvailable, beginOperation, captureDirectoryTarget, recordCompleted, recordPending, recordStepFailure, withOperationTargetLocks } from "../store/operation.ts";
@@ -227,6 +228,29 @@ async function archiveHandler(ctx: CommandContext): Promise<number> {
   {
     const { ws, g, snapshot, grove } = await lifecycleContext(ctx, parsed.positionals[0]);
     if (grove.metadata?.state === "archived") throw new GroveError({ kind: "refused-precondition", what: `Cannot archive "${grove.name}"`, why: "it is already archived", remedy: "Restore or delete it instead." });
+    const activePath = expandGrovePath(snapshot.layout, grove.name);
+    const unavailable = snapshot.repositories.filter((repository) => repository.registration && repository.problem);
+    if (unavailable.length) {
+      // A failed Git inspection yields zero observed Trees, which does not prove that the Grove
+      // contains none. Itemize everything the directory move could carry, without treating the
+      // filesystem positions as proof of Git membership or following symlinks.
+      const atRisk: string[] = [];
+      const walk = (directory: string, depth: number): void => {
+        if (depth > 64 || atRisk.length >= 10_000) return;
+        let entries: Dirent<string>[];
+        try { entries = readdirSync(directory, { withFileTypes: true }); }
+        catch { atRisk.push(`${relative(snapshot.layout.workspaceRoot, directory)}/ (unreadable)`); return; }
+        for (const entry of entries) {
+          if (atRisk.length >= 10_000) break;
+          if (entry.name === ".git") continue;
+          const path = join(directory, entry.name);
+          atRisk.push(relative(snapshot.layout.workspaceRoot, path));
+          if (entry.isDirectory()) walk(path, depth + 1);
+        }
+      };
+      if (existsSync(activePath)) walk(activePath, 0);
+      throw new GroveError({ kind: "refused-precondition", what: `Cannot archive "${grove.name}"`, why: `repository inspection failed, so Tree membership cannot be determined: ${unavailable.map((repository) => repository.registration!.name).join(", ")}; content at risk: ${atRisk.join(", ") || "unknown"}`, remedy: "Restore access to the listed repositories, run `grove doctor`, then retry archive.", detail: { repositories: unavailable.map((repository) => ({ repositoryId: repository.registration!.id, repositoryAlias: repository.registration!.name, problem: repository.problem })), atRisk } });
+    }
     await refuseUnsafe(g, snapshot, grove.trees, destructiveConsent(parsed.values));
     await refuseUndurable(g, snapshot, grove.trees, parsed.values["allow-unpushed"] === true);
     const discardedWork: Array<{ repositoryId: string; repositoryAlias: string; tree: string; changes: Array<{ status: string; path: string }> }> = [];
@@ -236,7 +260,6 @@ async function archiveHandler(ctx: CommandContext): Promise<number> {
       const status = await porcelainStatus(g, tree.path.utf8);
       if (repository?.registration && !status.problem && status.changes.length) discardedWork.push({ repositoryId: repository.registration.id, repositoryAlias: repository.registration.name, tree: tree.treeName ?? tree.path.display, changes: status.changes });
     }
-    const activePath = expandGrovePath(snapshot.layout, grove.name);
     resolveLayoutTarget(snapshot.layout, activePath);
     const archivePath = resolveLayoutTarget(snapshot.layout, expandArchivePath(snapshot.layout, grove.name));
     // This Grove's own pending operation explains an existing archive path far better than the path
@@ -565,7 +588,7 @@ async function deleteHandler(ctx: CommandContext): Promise<number> {
     // FR-023: loose content is inventoried recursively, per path. Consent to a directory name would
     // otherwise extend to anything later added inside it, because the removal below is recursive.
     const planInventory: LooseInventory = existsSync(contentPath)
-      ? inventoryLooseContent(contentPath, grove.trees.flatMap((tree) => tree.path.utf8 === null ? [] : [tree.path.utf8]))
+      ? inventoryLooseContent(contentPath, grove.trees.flatMap((tree) => tree.path.utf8 === null ? [] : [tree.path.utf8]), { structuralDirectories: structuralTreeSlotPaths(snapshot.layout, grove.name, snapshot.repositories.flatMap((repository) => repository.registration ? [repository.registration.name] : [])) })
       : { entries: [], incomplete: [] };
     const looseAtRisk = planInventory.entries.map(looseEntryLabel);
     // Collect both risk classes before refusing. Sequential throws hid loose files whenever a
@@ -635,7 +658,7 @@ async function deleteHandler(ctx: CommandContext): Promise<number> {
           const mutationSnapshot = await observeWorkspace(requireWorkspace({ cwd: ws.root, workspace: ws.root }), g);
           assertDestructiveMutationPath(mutationSnapshot, contentPath, { allowObservedPaths: targetPaths, groveName: grove.name });
           // The Trees are gone now, so anything at a Tree path is new content, not an exemption.
-          const current = inventoryLooseContent(contentPath, targetPaths, { accountedPresent: "inventory" });
+          const current = inventoryLooseContent(contentPath, targetPaths, { accountedPresent: "inventory", structuralDirectories: structuralTreeSlotPaths(snapshot.layout, grove.name, snapshot.repositories.flatMap((repository) => repository.registration ? [repository.registration.name] : [])) });
           const remaining = current.entries.map(looseEntryLabel);
           const refuseLoose = (facts: Record<string, unknown>, why: string) => {
             recordStepFailure(operation, "delete-content", "conflicted", "stale-plan", facts);

@@ -343,3 +343,12 @@ No constitution violations or complexity waivers. Schema-1/schema-2 ownership pa
 ## Implemented structure
 
 The final cutover accepts schema 3 only and refuses every foreign schema before interpreting its shape. `src/migration/`, migration commands, ownership loaders, production claims, provenance, rollback journals, ref-deleting cleanup, and mutable live-state arrays are absent and guarded by the legacy scan.
+
+## Archive and layout repair lane (V3ALY)
+
+**Authority:** Constitution I, IV, V; FR-029A and FR-036A; `cli-surface-v3.md` and `config-v3.md` V3ALY amendments. **Baseline:** the V3ALY-01/02/03 focused built-artifact witnesses failed before implementation; V3ALY-04 is volume-dependent and skips on the current case-insensitive test volume.
+
+1. Add V3ALY-01 through V3ALY-04 acceptance rows and executable witnesses; capture the failing baseline before source changes.
+2. Refuse archive when Git inspection leaves Tree membership unknown, itemizing Tree-position content before any move. Reject colliding repair destinations before dry-run or operation creation. Compare case-variant owner paths by filesystem identity. Dependency: 1.
+3. Define structural Tree slot paths once in layout code and use them in loose-content inventory at delete plan and point of use, preserving ordinary loose-file protection. Coordinate recovery reuse with its owning lane. Dependency: 1.
+4. Run focused witnesses, then the full local gate once at default concurrency. Record passing witnesses in the traceability ledger; commit and open a PR for independent review. Dependency: 2 and 3.

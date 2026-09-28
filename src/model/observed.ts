@@ -11,7 +11,7 @@ import { assertNoNestedGitOwnership, isStrictSubpath, isSubpath } from "../paths
 import { expectedBranch, expectedTreeName } from "../config/conventions.ts";
 import { caseFoldKey } from "./validate.ts";
 import { GroveError } from "../errors.ts";
-import { realpathSync } from "node:fs";
+import { realpathSync, statSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 
 export interface RepositoryIndexInput { registration: { id: string; name: string } | null; commonGitDir: string }
@@ -182,11 +182,18 @@ function classifyRaw(raw: RawWorktreeEntry, registration: RepositoryEntry | null
       // Issue #18: a `{repo}` segment is a claim about ownership that Git decides. The owner is the
       // registration whose `git worktree list` reported this entry, so a Tree sitting in another
       // repository's slot is misplaced; its conforming path keeps the observed Grove and Tree names.
-      // Repository names are unique under ASCII case-folding, so a segment spelling the owner's name
-      // in another case names the owner itself and stays conforming.
-      const expectedPath = match.repo !== undefined && caseFoldKey(match.repo) !== caseFoldKey(registration.name)
-        ? expandTreePath(layout, match.grove, match.tree, registration.name)
-        : raw.path.canonicalUtf8;
+      // A case variant can name the same directory on a case-insensitive volume, but on a
+      // case-sensitive volume its path is distinct from the owner's configured slot.
+      const ownerPath = expandTreePath(layout, match.grove, match.tree, registration.name);
+      let sameDirectory = raw.path.canonicalUtf8 === ownerPath;
+      if (!sameDirectory) {
+        try {
+          const current = statSync(raw.path.canonicalUtf8);
+          const owner = statSync(ownerPath);
+          sameDirectory = current.dev === owner.dev && current.ino === owner.ino;
+        } catch { /* A missing owner slot is distinct. */ }
+      }
+      const expectedPath = match.repo !== undefined && !sameDirectory ? ownerPath : raw.path.canonicalUtf8;
       return { role: "tree", selector: { repositoryId: registration.id, tree: match.tree }, groveName: match.grove, treeName: match.tree, expectedPath };
     }
     return { role: "unclassified", selector: null, groveName: match.grove, treeName: match.tree, expectedPath: raw.path.canonicalUtf8 };

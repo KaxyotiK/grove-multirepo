@@ -582,13 +582,14 @@ test("V3LAY-08: owner-slot conformance leaves correctly placed Trees, same-slot 
 // Repository names are unique under ASCII case-folding (`caseFoldKey`), so a `{repo}` segment that
 // spells the owner's name in another case names the owner, not another repository. On a
 // case-insensitive volume it is also the same directory, so no move could ever repair it.
-test("V3LAY-09: a {repo} slot spelling its owner's name in another case is conforming and an unfiltered fix --move still repairs another misplaced Tree", () => {
+test("V3LAY-09: a {repo} slot spelling its owner's name in another case is conforming and an unfiltered fix --move still repairs another misplaced Tree", (t) => {
   const fx = makeFixture({ repos: { alpha: [], beta: [] } });
   initWithLayout(fx, { trees: "groves/{grove}/trees/{repo}/{tree}" });
   const alphaId = addRepository(fx, "alpha").targets[0].after.repositoryId;
   const betaId = addRepository(fx, "beta").targets[0].after.repositoryId;
   expectSuccess(fx.grove(["--json", "new", "d", "--all"]));
   expectSuccess(fx.grove(["--json", "new", "e", "--all"]));
+  if (!existsSync(join(fx.root, "groves", "d", "trees", "Alpha", "d@alpha"))) { t.skip("V3LAY-09 applies to case-insensitive volumes; V3ALY-04 covers distinct case-variant slots"); return; }
   const alphaStore = join(fx.root, "repos", "alpha");
 
   const caseVariant = join(fx.root, "groves", "d", "trees", "Alpha", "x@alpha");

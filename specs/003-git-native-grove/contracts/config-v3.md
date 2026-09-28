@@ -84,3 +84,8 @@ Advisory metadata lives at `.grove/groves/<grove>.json`, never under a configura
 ## Metadata-free Groves
 
 A correctly placed raw Git worktree forms an observed Grove with no metadata file. Read commands, agent launch with workspace defaults, rename, and delete work on it by name. The first command needing Grove-owned metadata creates it atomically with create-if-absent semantics; a racing loser reloads the winner's metadata. Lookup by ID works only for Groves with metadata. A metadata file never proves that a Grove or Tree exists.
+
+### Layout repair amendment (V3ALY)
+
+- Empty directories that serve only as Tree layout slots after a native or Grove move are structural, not loose Grove content. User files within those slots remain loose content and retain destructive consent protection (`V3ALY-02`).
+- On a case-sensitive volume, a Tree in a `{repo}` slot whose name differs from its Git-observed owning registration only in case is misplaced and has the owner's exact configured slot as its destination. On a case-insensitive volume, the same spelling resolves to the same path and remains conforming. This amends the earlier case-folded conformance rule and `V3LAY-09` for volumes where the two spellings are distinct (`V3ALY-04`).
